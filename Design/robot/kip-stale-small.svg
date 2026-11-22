@@ -9,8 +9,8 @@
 <circle cx="48.5" cy="7.5" r="4.2" stroke="#6B6555" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
 <rect x="12.5" y="12" width="9" height="18" rx="4.5" fill="#FFFFFF"/>
 <rect x="12.5" y="12" width="9" height="18" rx="4.5" stroke="#6B6555" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-<rect x="15.4" y="16.5" width="3.2" height="9" rx="1.6" fill="#6B6555"/>
+<circle cx="17" cy="22" r="2" fill="#6B6555"/>
 <rect x="24.5" y="12" width="9" height="18" rx="4.5" fill="#FFFFFF"/>
 <rect x="24.5" y="12" width="9" height="18" rx="4.5" stroke="#6B6555" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-<rect x="27.4" y="16.5" width="3.2" height="9" rx="1.6" fill="#6B6555"/>
+<circle cx="29" cy="22" r="2" fill="#6B6555"/>
 </svg>

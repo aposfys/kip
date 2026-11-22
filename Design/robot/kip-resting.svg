@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="none">
+<title>kip, resting</title>
+<!-- Generated from Shared/Robot.swift by `kip --svg <dir>`. Edit the Swift, not this file.
+     Colours: body #7A7FD9, back #C5C8F5, lines #2B2E6B, ball #FF7A5C, blush #FF7A5C, eyes #FFFFFF. The pencil filter wobbles each line by at most 1.2. -->
+<defs>
+<filter id="pencil" x="-5%" y="-5%" width="110%" height="110%">
+<feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="grain"/>
+<feDisplacementMap in="SourceGraphic" in2="grain" scale="1.2" xChannelSelector="R" yChannelSelector="G"/>
+</filter>
+<clipPath id="clip5"><path d="M19.16 69 C43.05 71.34 66.95 70.98 90.84 69.2 C98.11 69.2 104 74.89 104 82.16 L104 83.84 C104 91.11 98.11 97 90.84 97 C66.95 97.45 43.05 96.8 19.16 97 C11.89 97 6 91.11 6 83.84 L6 82.16 C6 74.89 11.89 69 19.16 69 Z" fill="#000000"/></clipPath>
+<clipPath id="clip6"><path d="M19.16 69 C43.05 71.34 66.95 70.98 90.84 69.2 C98.11 69.2 104 74.89 104 82.16 L104 83.84 C104 91.11 98.11 97 90.84 97 C66.95 97.45 43.05 96.8 19.16 97 C11.89 97 6 91.11 6 83.84 L6 82.16 C6 74.89 11.89 69 19.16 69 Z" fill="#000000"/></clipPath>
+</defs>
+<g filter="url(#pencil)">
+<path d="M16 99.5 C40 98.6 76 100.2 104 99.2" stroke="#2B2E6B" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.2"/>
+<path d="M25.16 65 C49.05 66.95 72.95 66.65 96.84 65.2 C104.11 65.2 110 70.89 110 78.16 L110 79.84 C110 87.11 104.11 93 96.84 93 C72.95 93.45 49.05 92.8 25.16 93 C17.89 93 12 87.11 12 79.84 L12 78.16 C12 70.89 17.89 65 25.16 65 Z" fill="#C5C8F5"/>
+<path d="M25.16 65 C49.05 66.95 72.95 66.65 96.84 65.2 C104.11 65.2 110 70.89 110 78.16 L110 79.84 C110 87.11 104.11 93 96.84 93 C72.95 93.45 49.05 92.8 25.16 93 C17.89 93 12 87.11 12 79.84 L12 78.16 C12 70.89 17.89 65 25.16 65 Z" stroke="#2B2E6B" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M25.16 65 C49.05 66.95 72.95 66.65 96.84 65.2 C104.11 65.2 110 70.89 110 78.16 L110 79.84 C110 87.11 104.11 93 96.84 93 C72.95 93.45 49.05 92.8 25.16 93 C17.89 93 12 87.11 12 79.84 L12 78.16 C12 70.89 17.89 65 25.16 65 Z" stroke="#2B2E6B" stroke-width="0.99" stroke-linecap="round" stroke-linejoin="round" opacity="0.5" transform="matrix(1 0 0 1 0.55 0.65)"/>
+<path d="M19.16 69 C43.05 71.34 66.95 70.98 90.84 69.2 C98.11 69.2 104 74.89 104 82.16 L104 83.84 C104 91.11 98.11 97 90.84 97 C66.95 97.45 43.05 96.8 19.16 97 C11.89 97 6 91.11 6 83.84 L6 82.16 C6 74.89 11.89 69 19.16 69 Z" fill="#7A7FD9" opacity="0.9"/>
+<path d="M-22 97 L6 69 M-18 97 L10 69 M-14 97 L14 69 M-10 97 L18 69 M-6 97 L22 69 M-2 97 L26 69 M2 97 L30 69 M6 97 L34 69 M10 97 L38 69 M14 97 L42 69 M18 97 L46 69 M22 97 L50 69 M26 97 L54 69 M30 97 L58 69 M34 97 L62 69 M38 97 L66 69 M42 97 L70 69 M46 97 L74 69 M50 97 L78 69 M54 97 L82 69 M58 97 L86 69 M62 97 L90 69 M66 97 L94 69 M70 97 L98 69 M74 97 L102 69 M78 97 L106 69 M82 97 L110 69 M86 97 L114 69 M90 97 L118 69 M94 97 L122 69 M98 97 L126 69 M102 97 L130 69" stroke="#2B2E6B" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.13" clip-path="url(#clip5)"/>
+<path d="M-19.8 97 L8.2 69 M-14.8 97 L13.2 69 M-9.8 97 L18.2 69 M-4.8 97 L23.2 69 M0.2 97 L28.2 69 M5.2 97 L33.2 69 M10.2 97 L38.2 69 M15.2 97 L43.2 69 M20.2 97 L48.2 69 M25.2 97 L53.2 69 M30.2 97 L58.2 69 M35.2 97 L63.2 69 M40.2 97 L68.2 69 M45.2 97 L73.2 69 M50.2 97 L78.2 69 M55.2 97 L83.2 69 M60.2 97 L88.2 69 M65.2 97 L93.2 69 M70.2 97 L98.2 69 M75.2 97 L103.2 69 M80.2 97 L108.2 69 M85.2 97 L113.2 69 M90.2 97 L118.2 69 M95.2 97 L123.2 69 M100.2 97 L128.2 69" stroke="#FBF7EF" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.32" clip-path="url(#clip6)"/>
+<path d="M19.16 69 C43.05 71.34 66.95 70.98 90.84 69.2 C98.11 69.2 104 74.89 104 82.16 L104 83.84 C104 91.11 98.11 97 90.84 97 C66.95 97.45 43.05 96.8 19.16 97 C11.89 97 6 91.11 6 83.84 L6 82.16 C6 74.89 11.89 69 19.16 69 Z" stroke="#2B2E6B" stroke-width="2.21" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M19.16 69 C43.05 71.34 66.95 70.98 90.84 69.2 C98.11 69.2 104 74.89 104 82.16 L104 83.84 C104 91.11 98.11 97 90.84 97 C66.95 97.45 43.05 96.8 19.16 97 C11.89 97 6 91.11 6 83.84 L6 82.16 C6 74.89 11.89 69 19.16 69 Z" stroke="#2B2E6B" stroke-width="1.43" stroke-linecap="round" stroke-linejoin="round" opacity="0.5" transform="matrix(1 0 0 1 0.55 0.65)"/>
+<path d="M55 70.35 C54.5 60.35 56.5 52.85 61.6 53.05" stroke="#2B2E6B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="66" cy="53.35" r="4.6" fill="#FF7A5C" opacity="0.6"/>
+<circle cx="66" cy="53.35" r="4.6" stroke="#2B2E6B" stroke-width="1.19" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<circle cx="66" cy="53.35" r="4.6" stroke="#2B2E6B" stroke-width="0.77" stroke-linecap="round" stroke-linejoin="round" opacity="0.5" transform="matrix(1 0 0 1 0.55 0.65)"/>
+<rect x="23.38" y="90.4" width="8" height="4.2" rx="2.1" fill="#FF7A5C" opacity="0.7"/>
+<rect x="53.88" y="90.4" width="8" height="4.2" rx="2.1" fill="#FF7A5C" opacity="0.7"/>
+<path d="M31.88 82 Q36.38 86.5 40.88 82" stroke="#2B2E6B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M44.38 82 Q48.88 86.5 53.38 82" stroke="#2B2E6B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="42.63" cy="90" r="1.9" stroke="#2B2E6B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M84 50 L92 50 L84 58 L92 58" stroke="#2B2E6B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.68"/>
+<path d="M97 36 L103 36 L97 42 L103 42" stroke="#2B2E6B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.51"/>
+</g>
+</svg>

@@ -77,12 +77,13 @@ enum Robot {
         }
 
         // Body: squashed flat when resting (and breathing), otherwise the 2.6 : 1 slab on the ground at y 97.
+        // Posture reads without colour: flat (resting, calm, happy, stale), lifted (busy), jolted (worried).
         var b = m == .resting ? CGRect(x: 6, y: 69, width: 98, height: 28) : CGRect(x: 10, y: 61, width: 90, height: 36)
         if m == .resting { let breath = 1.2 * wave(4.5); b.origin.y -= breath; b.size.height += breath }
         let r = b.height * 0.47
         var lift = 0.0
         if m == .busy { lift = 14 }
-        if m == .worried { lift = 28 + 1.2 * wave(0.21) }
+        if m == .worried { lift = 36 + 1.5 * wave(0.21) }
         let bounce: CGFloat = m == .happy ? -3 * max(0, wave(1.1)) : 0
         let pose = Robot.pose(lift: lift, dy: bounce, around: CGPoint(x: b.maxX - r, y: b.maxY - r))
 
@@ -92,77 +93,91 @@ enum Robot {
                  clip: Part.Geometry? = nil) {
             out.append(Part(geometry: g, color: c, stroked: stroked, width: width, opacity: opacity, pose: pose, clip: clip))
         }
-        /// A pencil line: the main stroke plus a faint second pass just off it.
+        /// A pencil line: the main stroke plus a lighter second pass just below and right of it, so
+        /// the weight swells on the shadow side and thins on the lit side, like a real pencil.
         func pencil(_ g: Part.Geometry, _ c: UInt32, width: CGFloat = 2.6) {
-            add(g, c, stroked: true, width: width, opacity: 0.92)
-            out.append(Part(geometry: g, color: c, stroked: true, width: width * 0.4, opacity: 0.35,
-                            pose: CGAffineTransform(translationX: 0.8, y: -0.6).concatenating(pose)))
+            add(g, c, stroked: true, width: width * 0.85, opacity: 0.92)
+            out.append(Part(geometry: g, color: c, stroked: true, width: width * 0.55, opacity: 0.5,
+                            pose: CGAffineTransform(translationX: 0.55, y: 0.65).concatenating(pose)))
         }
 
-        // Back layer one tone paler, offset behind and to the right; then the hatched front.
-        let back = b.offsetBy(dx: 6, dy: -4)
-        add(.rect(back, radius: r), ink.back)
-        pencil(.rect(back, radius: r), ink.line, width: 1.8)
-        add(.rect(b, radius: r), ink.body, opacity: 0.94)
-        add(.path(hatch(b)), ink.line, stroked: true, width: 1, opacity: 0.13, clip: .rect(b, radius: r))
-        pencil(.rect(b, radius: r), ink.line)
+        // Back layer one tone paler, offset behind and to the right; then the front, laid in as
+        // hatching with paper showing through. Both are hand-traced: bowed edges, not a perfect rect.
+        let dip: CGFloat = m == .resting ? 1.8 : -0.5   // the sleeping slab sags in the middle
+        let front = slab(b, radius: r, top: dip), backPath = slab(b.offsetBy(dx: 6, dy: -4), radius: r, top: dip - 0.3)
+        add(.path(backPath), ink.back)
+        pencil(.path(backPath), ink.line, width: 1.8)
+        add(.path(front), ink.body, opacity: 0.9)
+        add(.path(hatch(b)), ink.line, stroked: true, width: 1, opacity: 0.13, clip: .path(front))
+        add(.path(hatch(b, gap: 5, shift: 2.2)), Ink.paper, stroked: true, width: 1.1, opacity: 0.32, clip: .path(front))
+        pencil(.path(front), ink.line)
 
-        // Antenna from the top middle: curved and leaning right, straight up when happy.
-        let top = CGPoint(x: b.midX, y: b.minY)
+        // Antenna from the top middle: up, then hooked right to the ball. Straight up when happy.
+        let top = CGPoint(x: b.midX, y: b.minY + (m == .resting ? dip * 0.75 : 0))
         let straight = m == .happy
-        let tip = straight ? CGPoint(x: top.x, y: top.y - 21) : CGPoint(x: top.x + 7, y: top.y - 19)
-        let ball = straight ? CGPoint(x: tip.x, y: tip.y - 4.5) : CGPoint(x: tip.x + 1.6, y: tip.y - 3.6)
-        add(.path(straight ? "M\(n(top.x)) \(n(top.y)) L\(n(tip.x)) \(n(tip.y))"
-                  : "M\(n(top.x)) \(n(top.y)) C\(n(top.x - 1)) \(n(top.y - 8)) \(n(top.x + 1)) \(n(top.y - 15)) \(n(tip.x)) \(n(tip.y))"),
+        let ball = straight ? CGPoint(x: top.x, y: top.y - 25.5) : CGPoint(x: top.x + 11, y: top.y - 17)
+        add(.path(straight ? "M\(n(top.x)) \(n(top.y)) L\(n(top.x)) \(n(top.y - 21))"
+                  : "M\(n(top.x)) \(n(top.y)) C\(n(top.x - 0.5)) \(n(top.y - 10)) \(n(top.x + 1.5)) \(n(top.y - 17.5)) \(n(top.x + 6.6)) \(n(top.y - 17.3))"),
             ink.line, stroked: true, width: 2.2)
         if m == .busy {
             add(.circle(ball, radius: 9.5 + 1.2 * wave(1.2)), ink.ball, opacity: 0.3 + 0.12 * wave(1.2))
         }
-        add(.circle(ball, radius: 5), ink.ball, opacity: m == .resting ? 0.6 : 1)
-        pencil(.circle(ball, radius: 5), ink.line, width: 1.4)
+        add(.circle(ball, radius: 4.6), ink.ball, opacity: m == .resting ? 0.6 : 1)
+        pencil(.circle(ball, radius: 4.6), ink.line, width: 1.4)
 
-        // Face on the left half: eyes, blush under them, mouth between.
-        let ey = b.minY + b.height * 0.42
-        let eyes = [b.minX + b.width * 0.22, b.minX + b.width * 0.38]
-        let mx = (eyes[0] + eyes[1]) / 2, my = ey + (m == .resting ? 8.5 : 13)
+        // Face on the left half (KIP-SPEC M4): two tall dark pill eyes with a highlight, a coral
+        // blush oval below and outside each eye, and a small smile between them.
+        let ey = b.minY + b.height * (m == .resting ? 0.5 : 0.4)
+        let eyes = [b.minX + b.width * 0.31, b.minX + b.width * 0.31 + 12.5]
+        let mx = (eyes[0] + eyes[1]) / 2, my = ey + (m == .resting ? 7 : 11)
         if m != nil {
-            for (x, dx) in zip(eyes, [-7.0, 7.0]) {
-                add(.circle(CGPoint(x: x + dx, y: ey + 10), radius: 3.6), Ink.coral, opacity: 0.75)
+            for (x, dx) in zip(eyes, [-9.0, 9.0]) {
+                add(.rect(CGRect(x: x + dx - 4, y: ey + 7.4, width: 8, height: 4.2), radius: 2.1), Ink.coral, opacity: 0.7)
             }
         }
         let blink = m == .calm && (phase.map { $0.truncatingRemainder(dividingBy: 4.3) < 0.15 } ?? false)
-        func pill(_ x: CGFloat) -> CGRect { CGRect(x: x - 5, y: ey - 9, width: 10, height: 18) }
         func line(_ d: String, width: CGFloat = 2.6) { add(.path(d), ink.line, stroked: true, width: width) }
+        /// The calm eye from the master sheet: a tall dark pill with a small highlight near its top.
+        func pillEye(_ x: CGFloat) {
+            add(.rect(CGRect(x: x - 3.8, y: ey - 8, width: 7.6, height: 16), radius: 3.8), ink.line)
+            add(.rect(CGRect(x: x - 2.5, y: ey - 6.4, width: 2.6, height: 4.4), radius: 1.3), Ink.eye, opacity: 0.95)
+        }
+        let smile = "M\(n(mx - 4.2)) \(n(my - 1)) Q\(n(mx)) \(n(my + 3.2)) \(n(mx + 4.2)) \(n(my - 1))"
 
         switch m {
-        case nil:   // stale: dot eyes, flat mouth
-            for x in eyes { add(.circle(CGPoint(x: x, y: ey), radius: 2.8), ink.line) }
-            line("M\(n(mx - 4)) \(n(my)) L\(n(mx + 4)) \(n(my))")
+        case nil:   // stale: dot eyes, flat mouth, no blush
+            for x in eyes { add(.circle(CGPoint(x: x, y: ey + 1), radius: 2.6), ink.line) }
+            line("M\(n(mx - 3.5)) \(n(my)) L\(n(mx + 3.5)) \(n(my))", width: 2.2)
         case .resting:   // closed eyes, little "o"
-            for x in eyes { line("M\(n(x - 5)) \(n(ey)) Q\(n(x)) \(n(ey + 4.5)) \(n(x + 5)) \(n(ey))") }
-            add(.circle(CGPoint(x: mx, y: my), radius: 2.1), ink.line, stroked: true, width: 2)
-        case .calm, .busy:   // pill eyes; busy's pupils are spinning loading rings
+            for x in eyes { line("M\(n(x - 4.5)) \(n(ey - 1)) Q\(n(x)) \(n(ey + 3.5)) \(n(x + 4.5)) \(n(ey - 1))", width: 2.2) }
+            add(.circle(CGPoint(x: mx, y: my), radius: 1.9), ink.line, stroked: true, width: 1.8)
+        case .calm:   // pill eyes, M4 smile
             for x in eyes {
-                if blink { line("M\(n(x - 5)) \(n(ey)) Q\(n(x)) \(n(ey + 2.5)) \(n(x + 5)) \(n(ey))"); continue }
-                add(.rect(pill(x), radius: 5), Ink.eye)
-                pencil(.rect(pill(x), radius: 5), ink.line, width: 2.2)
-                if m == .busy {
-                    line(arc(CGPoint(x: x, y: ey), 3, from: -90 + (phase ?? 0) * 300, sweep: 270), width: 1.9)
-                } else {
-                    add(.rect(CGRect(x: x - 2, y: ey - 4.5, width: 4, height: 9), radius: 2), ink.line)
-                }
+                if blink { line("M\(n(x - 4)) \(n(ey)) Q\(n(x)) \(n(ey + 2.5)) \(n(x + 4)) \(n(ey))"); continue }
+                pillEye(x)
             }
-            line(m == .busy ? "M\(n(mx - 3.5)) \(n(my)) Q\(n(mx)) \(n(my + 1.5)) \(n(mx + 3.5)) \(n(my))"
-                            : "M\(n(mx - 4)) \(n(my - 1)) Q\(n(mx)) \(n(my + 3)) \(n(mx + 4)) \(n(my - 1))")
+            line(smile, width: 2.2)
+        case .busy:   // focused brows over spinning loading-ring eyes, a small smirk
+            for (x, s) in zip(eyes, [1.0, -1.0]) {
+                line(arc(CGPoint(x: x, y: ey + 0.5), 4.2, from: -90 + (phase ?? 0) * 300, sweep: 285), width: 2.6)
+                line("M\(n(x - 4.5 * s)) \(n(ey - 12)) L\(n(x + 3.5 * s)) \(n(ey - 8))", width: 2.2)
+            }
+            line("M\(n(mx - 3.5)) \(n(my)) Q\(n(mx + 0.5)) \(n(my + 1.8)) \(n(mx + 3.8)) \(n(my - 1))", width: 2.2)
         case .happy:   // smiling eyes, open grin
-            for x in eyes { line("M\(n(x - 5)) \(n(ey + 3)) Q\(n(x)) \(n(ey - 7)) \(n(x + 5)) \(n(ey + 3))", width: 3) }
+            for x in eyes { line("M\(n(x - 4.3)) \(n(ey + 2.5)) Q\(n(x)) \(n(ey - 6.5)) \(n(x + 4.3)) \(n(ey + 2.5))", width: 2.8) }
             add(.path("M\(n(mx - 5.5)) \(n(my - 2)) L\(n(mx + 5.5)) \(n(my - 2)) C\(n(mx + 5.5)) \(n(my + 3)) \(n(mx + 3)) \(n(my + 5)) \(n(mx)) \(n(my + 5)) C\(n(mx - 3)) \(n(my + 5)) \(n(mx - 5.5)) \(n(my + 3)) \(n(mx - 5.5)) \(n(my - 2)) Z"),
                 ink.line)
-        case .worried:   // X eyes, wobbly mouth
+        case .worried:   // X eyes, wobbly mouth. The X arms are turned back against the jolt so they
+                         // still read as an X, not a plus, once the body is lifted.
+            let t = -lift * .pi / 180
             for x in eyes {
-                line("M\(n(x - 4)) \(n(ey - 4.5)) L\(n(x + 4)) \(n(ey + 4.5)) M\(n(x + 4)) \(n(ey - 4.5)) L\(n(x - 4)) \(n(ey + 4.5))", width: 3)
+                line([Double.pi / 4, 3 * .pi / 4].map { a in
+                    let u = CGPoint(x: 5 * cos(a + t), y: 5 * sin(a + t))
+                    return "M\(n(x - u.x)) \(n(ey - u.y)) L\(n(x + u.x)) \(n(ey + u.y))"
+                }.joined(separator: " "), width: 2.8)
             }
-            line("M\(n(mx - 6)) \(n(my)) Q\(n(mx - 3)) \(n(my - 3)) \(n(mx)) \(n(my)) Q\(n(mx + 3)) \(n(my + 3)) \(n(mx + 6)) \(n(my))")
+            let wy = my + 1.5
+            line("M\(n(mx - 5.5)) \(n(wy)) Q\(n(mx - 2.75)) \(n(wy - 3)) \(n(mx)) \(n(wy)) Q\(n(mx + 2.75)) \(n(wy + 3)) \(n(mx + 5.5)) \(n(wy))", width: 2.4)
         }
 
         // Effects around kip. They stay upright and follow the posed antenna ball.
@@ -221,7 +236,11 @@ enum Robot {
                 let eye = CGRect(x: x - 4.5, y: 12, width: 9, height: 18)
                 add(.rect(eye, radius: 4.5), Ink.eye)
                 add(.rect(eye, radius: 4.5), ink.line, stroked: true, width: 2.4)
-                add(.rect(CGRect(x: x - 1.6, y: 16.5, width: 3.2, height: 9), radius: 1.6), ink.line)
+                if m == nil {   // stale: dot pupils, so it reads by shape too
+                    add(.circle(CGPoint(x: x, y: 22), radius: 2), ink.line)
+                } else {
+                    add(.rect(CGRect(x: x - 1.6, y: 16.5, width: 3.2, height: 9), radius: 1.6), ink.line)
+                }
             }
         }
         return out
@@ -229,10 +248,25 @@ enum Robot {
 
     // MARK: Path helpers
 
+    /// A hand-traced rounded slab: quarter-circle ends, but the long edges bow a little like a pencil
+    /// line. `top` > 0 sags the top edge in the middle (the sleeping squash), < 0 bulges it up.
+    static func slab(_ b: CGRect, radius r: CGFloat, top: CGFloat = -0.5) -> String {
+        let k = r * 0.5523, l = b.minX + r, rr = b.maxX - r, third = (rr - l) / 3
+        return "M\(n(l)) \(n(b.minY))"
+            + " C\(n(l + third)) \(n(b.minY + top * 1.3)) \(n(rr - third)) \(n(b.minY + top * 1.1)) \(n(rr)) \(n(b.minY + 0.2))"
+            + " C\(n(rr + k)) \(n(b.minY + 0.2)) \(n(b.maxX)) \(n(b.minY + r - k)) \(n(b.maxX)) \(n(b.minY + r))"
+            + " L\(n(b.maxX)) \(n(b.maxY - r))"
+            + " C\(n(b.maxX)) \(n(b.maxY - r + k)) \(n(rr + k)) \(n(b.maxY)) \(n(rr)) \(n(b.maxY))"
+            + " C\(n(rr - third)) \(n(b.maxY + 0.45)) \(n(l + third)) \(n(b.maxY - 0.2)) \(n(l)) \(n(b.maxY))"
+            + " C\(n(l - k)) \(n(b.maxY)) \(n(b.minX)) \(n(b.maxY - r + k)) \(n(b.minX)) \(n(b.maxY - r))"
+            + " L\(n(b.minX)) \(n(b.minY + r))"
+            + " C\(n(b.minX)) \(n(b.minY + r - k)) \(n(l - k)) \(n(b.minY)) \(n(l)) \(n(b.minY)) Z"
+    }
+
     /// Diagonal pencil hatching across a rect; parts clip it to the body.
-    static func hatch(_ r: CGRect, gap: CGFloat = 4) -> String {
+    static func hatch(_ r: CGRect, gap: CGFloat = 4, shift: CGFloat = 0) -> String {
         var d = ""
-        var x = r.minX - r.height
+        var x = r.minX - r.height + shift
         while x < r.maxX {
             d += "M\(n(x)) \(n(r.maxY)) L\(n(x + r.height)) \(n(r.minY)) "
             x += gap

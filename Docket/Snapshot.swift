@@ -24,10 +24,13 @@ enum Snapshot {
 
     static func writeSVGs(to dir: URL) {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        var files: [(String, String)] = Mood.allCases.map { ("\($0.rawValue).svg", Robot.svg($0)) }
-        files.append(("stale.svg", Robot.svg(.calm, stale: true)))
-        files += Mood.allCases.map { ("menubar-\($0.rawValue).svg", Robot.svg($0, glyph: true)) }
-        files.append(("menubar-stale.svg", Robot.svg(.calm, stale: true, glyph: true)))
+        // Six moods: the five Mood cases plus stale (old data), each as full art and a small menu-bar cut.
+        let moods = Mood.allCases.map { ($0.rawValue, $0, false) } + [("stale", Mood.calm, true)]
+        var files: [(String, String)] = []
+        for (name, mood, stale) in moods {
+            files.append(("kip-\(name).svg", Robot.svg(mood, stale: stale)))
+            files.append(("kip-\(name)-small.svg", Robot.svg(mood, stale: stale, glyph: true)))
+        }
         for (name, svg) in files {
             let url = dir.appendingPathComponent(name)
             do {
@@ -304,6 +307,10 @@ enum SelfTest {
         precondition(Robot.svg(.calm).contains("feTurbulence") && Robot.svg(.calm).contains("clipPath"), "pencil and hatching")
         let glyph = Robot.svg(.calm, glyph: true)
         precondition(!glyph.contains("filter") && !glyph.contains("clipPath") && glyph.contains("#5AB8FF"), "crisp colour glyph")
+        let slab = Robot.path(Robot.slab(CGRect(x: 10, y: 61, width: 90, height: 36), radius: 17)).cgPath.boundingBoxOfPath
+        precondition(abs(slab.minX - 10) < 0.5 && abs(slab.maxX - 100) < 0.5 && abs(slab.maxY - 97) < 0.6, "hand-traced slab")
+        precondition(Robot.svg(.calm).contains("fill=\"#FF7A5C\"") && !Robot.svg(.calm, stale: true).contains("fill=\"#FF7A5C\""),
+                     "blush on every mood but stale")
         let lifted = Robot.outline(Robot.parts(.busy)[4]).cgPath.boundingBoxOfPath, flat = Robot.outline(Robot.parts(.calm)[4]).cgPath.boundingBoxOfPath
         precondition(lifted.minY < flat.minY - 10 && abs(lifted.maxY - flat.maxY) < 3, "busy lifts its front, tail stays down")
         companion(noon: noon, at: at)
