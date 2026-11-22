@@ -2,21 +2,21 @@
 
 kip is a macOS menu-bar companion and desktop widget that shows the daily brief and how the Mac is doing. The name is always lowercase. The Xcode project, scheme, bundle ids, data folder and writer script keep the old working name, docket.
 
-- **Small:** the robot and the one thing for today.
+- **Small:** kip and the one thing for today.
 - **Medium:** adds the top 3 for today, plus compact battery-health and disk rings.
 - **Large:** adds the next PhD or personal deadline, the week with its waiting and no-date counts, when mail was last checked, how many agents are working, any Mac issue and the overdue count.
 
-The robot has four moods, and each one changes its shape, so it reads in grayscale too. Happy has dot eyes and a smile. Busy has half-lid eyes, an open mouth and a halo. Worried has X eyes, a wavy mouth and sparks, and leans 5°. Sleepy has closed eyes and a Zzz. Sleepy (22:00–07:00) wins over the rest. Next comes worried (overdue items or a Mac issue), then busy (3+ items today), and happy otherwise. A tap opens Inbox Docket in the browser. The widget makes no network calls. It reads one local JSON file and refreshes every 20 minutes. It also redraws at 07:00 and 22:00, so the mood changes on time. Each card shows how long ago the brief was updated. After 26 hours it shows a gentle stale state: the robot turns grey. The robot moves gently in the app window only. The widgets stay still.
+kip is a soft slab drawn in pencil on a paper card, with a paler back layer and light hatching. It has five moods. Each has its own colour and pose, so it also reads in grayscale. Resting is indigo, squashed flat, with closed eyes and a Zzz. Calm is sky blue, lying flat with round eyes. Happy is yellow, with smiling eyes, a straight antenna and sparkles. Busy is teal, lifts its front 14° and gets a halo round its antenna ball. Worried is orange, jolts up 28° with X eyes, a red ball and sparks. Resting (22:00–07:00) wins over the rest. Next comes worried (overdue items or a Mac issue), then busy (3+ items today), then happy (today's brief has nothing due). Calm covers everything else. A tap opens Inbox Docket in the browser. The widget makes no network calls. It reads one local JSON file and refreshes every 20 minutes. It also redraws at 07:00 and 22:00, so the mood changes on time. Each card shows how long ago the brief was updated. After 26 hours it shows a gentle stale state: kip turns grey-beige and goes still. kip moves gently in the app window only. The widgets stay still.
 
 ## Menu-bar companion
 
-The app lives in the menu bar as the robot in its current mood. A click opens a popover with three tabs.
+The app lives in the menu bar as a small colour kip in its current mood. If the menu bar is full, macOS may hide it behind the `<<` overflow button. Click that button, or allow kip under Menu Bar in System Settings. A click opens a popover with three tabs.
 
 - **Today:** Mac health and today's brief from the same JSON file, plus four actions. Run brief now asks Claude for a short brief from the task list. Health check runs `pc-health.sh` and refreshes the numbers. Disk preview runs `mo clean --dry-run`, which removes nothing. Open Inbox Docket opens the artifact.
 - **Ask:** one question, one answer. Claude runs as `claude -p --model sonnet --max-turns 6` with only Read, Grep and Glob, in safe mode, with docket.json as context. Web or bulk questions go to agy through `~/.claude/skills/agy-delegate/agy-run.sh` in plan mode. kip picks the engine from the wording, and you can change it.
 - **Tasks:** recurring prompts. Type "every Monday 9:00 check X and tell me" and kip shows the parsed schedule, prompt and engine to confirm. Each saved task is a LaunchAgent at `~/Library/LaunchAgents/local.docket-task-<id>.plist` that runs the same read-only one-shot, posts the answer as a notification and appends it to `~/.claude/docket/tasks/<id>.log`. Tasks can be paused, edited, deleted or run now. They run even when kip is closed.
 
-When something is overdue the robot turns worried and kip posts one notification, once per overdue count per day, between 07:00 and 22:00. Mac issues change the mood too, but `pc-health.sh --alert` already notifies about them, so kip only adds the first issue to its overdue notification. kip starts no Claude runs on its own. Only the tasks you create run on a schedule.
+When something is overdue kip turns worried and kip posts one notification, once per overdue count per day, between 07:00 and 22:00. Mac issues change the mood too, but `pc-health.sh --alert` already notifies about them, so kip only adds the first issue to its overdue notification. kip starts no Claude runs on its own. Only the tasks you create run on a schedule.
 
 Voice is off by default. When you turn it on in the gear menu, Ask gets a mic button that uses on-device speech recognition only, and answers are read out by the Mac's own voice. Open at login is in the same menu.
 
@@ -76,9 +76,9 @@ echo '{"scanned_at":"2026-11-22T14:05:00Z","running":[{"title":"MIC figures","pr
 
 Set `DOCKET_JSON` to write to another file, for example in tests.
 
-## Robot artwork
+## kip artwork
 
-`Design/robot/` holds the master SVGs: `happy`, `busy`, `worried`, `sleepy`, `stale` (happy, greyed out) and an 18 pt one-colour menu-bar template for each mood (`menubar-*.svg`). They are generated from `Shared/Robot.swift`, which also draws the robot in SwiftUI, so the two never drift apart. To change the robot, edit the Swift, rebuild and run:
+`Design/robot/` holds the master SVGs: `resting`, `calm`, `happy`, `busy`, `worried`, `stale` (calm, greyed out and still) and an 18 pt colour menu-bar icon for each (`menubar-*.svg`). The menu-bar icons skip the pencil texture and hatching, so they stay crisp at that size. They are generated from `Shared/Robot.swift`, which also draws kip in SwiftUI, so the two never drift apart. To change kip, edit the Swift, rebuild and run:
 
 ```bash
 ~/Applications/kip.app/Contents/MacOS/kip --svg Design/robot
@@ -93,6 +93,6 @@ python3 scripts/test_docket_widget_write.py
 ~/Applications/kip.app/Contents/MacOS/kip --companion-shot build/snap-companion
 ```
 
-`--selftest` checks the mood rules, the stale cut-off, the 07:00/22:00 boundaries, the due labels, the large widget's row budget, the new brief and scan keys, the 3-hour agents cut-off and the robot's path parser. `--snapshot` writes `docket-light.png`, `docket-dark.png` and `robot-moods.png` to the folder you give it. The widget images show every mood, the stale state and a crowded day in all three sizes, drawn from the real data file. The mood sheet shows every mood at 32, 44, 64 and 120 pt, in colour and in grayscale, plus the menu-bar glyphs.
+`--selftest` checks the mood rules, the stale cut-off, the 07:00/22:00 boundaries, the due labels, the large widget's row budget, the new brief and scan keys, the 3-hour agents cut-off, the path parser, the SVG pencil and hatching, the colour menu-bar icon and that busy lifts its front while its tail stays on the ground. `--snapshot` writes `docket-light.png`, `docket-dark.png` and `robot-moods.png` to the folder you give it. The widget images show every mood, the stale state and a crowded day in all three sizes, drawn from the real data file. The mood sheet shows every mood and the stale state at 32, 44, 64 and 120 pt, on light and dark cards and in grayscale, plus the menu-bar icons on light and dark bars.
 
 `--selftest` also checks the task parser, schedules and their LaunchAgent plists, task ids, the overdue alert's dedupe and quiet hours, the engine guess, and that headless Claude gets read-only tools. `--companion-shot` writes the popover's tabs, the task editor and the menu-bar icon for each mood.

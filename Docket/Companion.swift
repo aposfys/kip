@@ -68,24 +68,25 @@ enum Alerts {
 
 // MARK: - Menu-bar icon
 
-/// The robot glyph as a template image, so the menu bar tints it for light and dark.
+/// kip's colour icon in the current mood, the same in light and dark menu bars.
 @MainActor
 enum MenuIcon {
-    private static var cache: [Mood: NSImage] = [:]
+    private static var cache: [String: NSImage] = [:]
 
-    static func image(_ mood: Mood) -> NSImage {
-        if let image = cache[mood] { return image }
-        let renderer = ImageRenderer(content: RobotGlyph(mood: mood, color: .black).frame(height: 18))
+    static func image(_ mood: Mood, stale: Bool = false) -> NSImage {
+        let key = "\(mood.rawValue)\(stale ? "-stale" : "")"
+        if let image = cache[key] { return image }
+        let renderer = ImageRenderer(content: RobotGlyph(mood: mood, stale: stale).frame(height: 18))
         renderer.scale = 2
         let image: NSImage
         if let cg = renderer.cgImage {
             image = NSImage(cgImage: cg, size: NSSize(width: CGFloat(cg.width) / 2, height: CGFloat(cg.height) / 2))
         } else {
             image = NSImage(systemSymbolName: "face.smiling", accessibilityDescription: nil) ?? NSImage()
+            image.isTemplate = true
         }
-        image.isTemplate = true
-        image.accessibilityDescription = "kip, \(mood.label)"
-        cache[mood] = image
+        image.accessibilityDescription = "kip, \(stale ? "stale" : mood.label)"
+        cache[key] = image
         return image
     }
 }
@@ -95,7 +96,7 @@ struct MenuBarLabel: View {
 
     var body: some View {
         let model = store.model
-        Image(nsImage: MenuIcon.image(model.mood))
+        Image(nsImage: MenuIcon.image(model.mood, stale: model.isBriefStale))
             .accessibilityLabel(model.robotLabel)
     }
 }

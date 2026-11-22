@@ -1,37 +1,40 @@
 import SwiftUI
 
-/// kip the robot. One parts list drives the SwiftUI drawing, the master SVGs in
-/// Design/robot (`kip --svg <dir>`) and the menu-bar glyph, so they cannot drift apart.
+/// kip. One parts list drives the SwiftUI drawing, the master SVGs in Design/robot
+/// (`kip --svg <dir>`) and the menu-bar icon, so they cannot drift apart. Shape and colour follow
+/// KIP-SPEC.md: a long, low slab with a paler back layer behind it, the face on the left half and a
+/// thin antenna from the top middle. Mood shows in posture and eyes as well as colour.
 /// Design space is 120×120 with y pointing down, the same as the SVGs.
 enum Robot {
-    /// Palette hex values, also written into every exported SVG.
-    enum Ink {
-        static let blue: UInt32 = 0x008BE5      // front body, motion ticks, Zzz
-        static let navy: UInt32 = 0x004D80      // back body, antenna
-        static let coral: UInt32 = 0xFD5C3F     // antenna ball, blush, sparks
-        static let face: UInt32 = 0x002E4D      // eyes and mouth: 3.9:1 on the blue body
-        static let white: UInt32 = 0xFFFFFF     // eye highlights
-        static let blueSleepy: UInt32 = 0x0072BD
-        static let navySleepy: UInt32 = 0x003D66
-        static let black: UInt32 = 0x000000     // menu-bar template
+    /// One mood's colours (KIP-SPEC, "Mood colours").
+    struct Palette: Equatable {
+        var body: UInt32
+        var back: UInt32
+        var line: UInt32
+        var ball: UInt32 = Ink.coral
+    }
 
-        /// Stale data: the same robot in cool greys, so the mood still reads by shape.
-        static func stale(_ c: UInt32) -> UInt32 {
-            switch c {
-            case blue, blueSleepy: 0x8E99A3
-            case navy, navySleepy: 0x5E6A75
-            case coral: 0xA9B2BA
-            case face: 0x2F3A44
-            default: c
+    enum Ink {
+        static let coral: UInt32 = 0xFF7A5C   // blush and antenna ball
+        static let alarm: UInt32 = 0xFF3B30   // the worried antenna ball
+        static let eye: UInt32 = 0xFFFFFF
+        static let paper: UInt32 = 0xFBF7EF
+
+        static func palette(_ mood: Mood, stale: Bool = false) -> Palette {
+            if stale { return Palette(body: 0xC9C2B0, back: 0xE6E1D5, line: 0x6B6555, ball: 0xD8A797) }
+            switch mood {
+            case .resting: return Palette(body: 0x7A7FD9, back: 0xC5C8F5, line: 0x2B2E6B)
+            case .calm: return Palette(body: 0x5AB8FF, back: 0xA9DBFF, line: 0x1F5A96)
+            case .happy: return Palette(body: 0xFFC83D, back: 0xFFE7A3, line: 0x6B4A00)
+            case .busy: return Palette(body: 0x2BD4C5, back: 0xA6F0EA, line: 0x0D5C55)
+            case .worried: return Palette(body: 0xFF8A4C, back: 0xFFC9A8, line: 0x7A2E0B, ball: alarm)
             }
         }
     }
 
-    static let stroke: CGFloat = 4.5
     static let box = CGRect(x: 0, y: 0, width: 120, height: 120)
-    /// The menu-bar glyph crops the tail and effects away: body, antenna and face only.
-    static let glyphBox = CGRect(x: 20, y: 6, width: 80, height: 100)
-    static let pivot = CGPoint(x: 58, y: 76)
+    /// The menu-bar icon's own space: a flat slab with the eyes standing above it, 18 pt tall.
+    static let glyphBox = CGRect(x: 0, y: -2, width: 64, height: 42)
 
     struct Part {
         enum Geometry {
@@ -44,110 +47,223 @@ enum Robot {
         var geometry: Geometry
         var color: UInt32
         var stroked = false
-        var width: CGFloat = Robot.stroke
+        var width: CGFloat = 2.6
         var opacity: Double = 1
-        /// Degrees around `Robot.pivot` (the worried lean).
-        var tilt: Double = 0
-        /// Menu-bar glyph only: cut out of the shapes below instead of drawn.
-        var knockout = false
+        /// The pose: how far the body is lifted and bounced, applied after the shape.
+        var pose: CGAffineTransform = .identity
+        /// Drawn only inside this shape, in the part's own space (the hatching inside the body).
+        var clip: Geometry? = nil
     }
 
-    /// The robot for one mood. `phase` (seconds) animates the antenna and sparks in the app;
-    /// widgets pass nil and stay still. `glyph` builds the one-colour menu-bar version.
+    /// Lifts the front (left) end by `degrees`, rolling on the tail's rounded corner at `corner`.
+    static func pose(lift degrees: Double, dy: CGFloat = 0, around corner: CGPoint) -> CGAffineTransform {
+        CGAffineTransform(translationX: corner.x, y: corner.y + dy)
+            .rotated(by: degrees * .pi / 180)
+            .translatedBy(x: -corner.x, y: -corner.y)
+    }
+
+    /// kip in one mood. `phase` (seconds) animates it in the app; widgets pass nil and stay still.
+    /// `glyph` builds the small menu-bar icon instead. Stale data overrides the mood's face and pose.
     static func parts(_ mood: Mood, stale: Bool = false, phase: Double? = nil, glyph: Bool = false) -> [Part] {
-        let sleepy = mood == .sleepy
-        let lean: Double = mood == .worried ? -5 : 0
-        let w = glyph ? 7 : stroke
+        glyph ? glyphParts(mood, stale: stale) : fullParts(mood, stale: stale, phase: phase)
+    }
+
+    private static func fullParts(_ mood: Mood, stale: Bool, phase: Double?) -> [Part] {
+        let ink = Ink.palette(mood, stale: stale)
+        let m: Mood? = stale ? nil : mood   // nil: stale, still and plain
         func wave(_ period: Double, _ offset: Double = 0) -> Double {
-            guard let phase else { return 0 }
+            guard let phase, m != nil else { return 0 }
             return sin((phase / period + offset) * 2 * .pi)
         }
 
-        var body: [Part] = []
-        func add(_ g: Part.Geometry, _ c: UInt32, stroked: Bool = false, opacity: Double = 1, face: Bool = false) {
-            body.append(Part(geometry: g, color: c, stroked: stroked, width: w, opacity: opacity, tilt: lean, knockout: glyph && face))
+        // Body: squashed flat when resting (and breathing), otherwise the 2.6 : 1 slab on the ground at y 97.
+        var b = m == .resting ? CGRect(x: 6, y: 69, width: 98, height: 28) : CGRect(x: 10, y: 61, width: 90, height: 36)
+        if m == .resting { let breath = 1.2 * wave(4.5); b.origin.y -= breath; b.size.height += breath }
+        let r = b.height * 0.47
+        var lift = 0.0
+        if m == .busy { lift = 14 }
+        if m == .worried { lift = 28 + 1.2 * wave(0.21) }
+        let bounce: CGFloat = m == .happy ? -3 * max(0, wave(1.1)) : 0
+        let pose = Robot.pose(lift: lift, dy: bounce, around: CGPoint(x: b.maxX - r, y: b.maxY - r))
+
+        var out: [Part] = [Part(geometry: .path("M16 99.5 C40 98.6 76 100.2 104 99.2"), color: ink.line, stroked: true,
+                                width: 1.4, opacity: 0.2)]   // pencil ground line
+        func add(_ g: Part.Geometry, _ c: UInt32, stroked: Bool = false, width: CGFloat = 2.6, opacity: Double = 1,
+                 clip: Part.Geometry? = nil) {
+            out.append(Part(geometry: g, color: c, stroked: stroked, width: width, opacity: opacity, pose: pose, clip: clip))
+        }
+        /// A pencil line: the main stroke plus a faint second pass just off it.
+        func pencil(_ g: Part.Geometry, _ c: UInt32, width: CGFloat = 2.6) {
+            add(g, c, stroked: true, width: width, opacity: 0.92)
+            out.append(Part(geometry: g, color: c, stroked: true, width: width * 0.4, opacity: 0.35,
+                            pose: CGAffineTransform(translationX: 0.8, y: -0.6).concatenating(pose)))
         }
 
-        // Cable tail, then the two-tone body: navy back layer offset behind the blue front.
-        if !glyph {
-            add(.path("M22 90 C12 95 4 89 6 80 C8 72 19 71 20 78 C21 86 9 88 6 79 C3.5 71 7 61 13 55"), Ink.blue, stroked: true)
-        }
-        add(.rect(CGRect(x: 31, y: 49, width: 64, height: 56), radius: 20), sleepy ? Ink.navySleepy : Ink.navy,
-            opacity: glyph ? 0.5 : 1)
-        add(.rect(CGRect(x: 22, y: 46, width: 64, height: 56), radius: 20), sleepy ? Ink.blueSleepy : Ink.blue)
+        // Back layer one tone paler, offset behind and to the right; then the hatched front.
+        let back = b.offsetBy(dx: 6, dy: -4)
+        add(.rect(back, radius: r), ink.back)
+        pencil(.rect(back, radius: r), ink.line, width: 1.8)
+        add(.rect(b, radius: r), ink.body, opacity: 0.94)
+        add(.path(hatch(b)), ink.line, stroked: true, width: 1, opacity: 0.13, clip: .rect(b, radius: r))
+        pencil(.rect(b, radius: r), ink.line)
 
-        // Antenna and ball. Busy adds a glowing halo ring; sleepy dims the ball.
-        add(.path("M54 46 C50 37 52 28 57 23"), Ink.navy, stroked: true)
-        if mood == .busy && !glyph {
-            add(.circle(CGPoint(x: 58, y: 18), radius: 12.5 + 0.8 * wave(1.6)), Ink.coral, stroked: true,
-                opacity: 0.35 + 0.15 * wave(1.6))
+        // Antenna from the top middle: curved and leaning right, straight up when happy.
+        let top = CGPoint(x: b.midX, y: b.minY)
+        let straight = m == .happy
+        let tip = straight ? CGPoint(x: top.x, y: top.y - 21) : CGPoint(x: top.x + 7, y: top.y - 19)
+        let ball = straight ? CGPoint(x: tip.x, y: tip.y - 4.5) : CGPoint(x: tip.x + 1.6, y: tip.y - 3.6)
+        add(.path(straight ? "M\(n(top.x)) \(n(top.y)) L\(n(tip.x)) \(n(tip.y))"
+                  : "M\(n(top.x)) \(n(top.y)) C\(n(top.x - 1)) \(n(top.y - 8)) \(n(top.x + 1)) \(n(top.y - 15)) \(n(tip.x)) \(n(tip.y))"),
+            ink.line, stroked: true, width: 2.2)
+        if m == .busy {
+            add(.circle(ball, radius: 9.5 + 1.2 * wave(1.2)), ink.ball, opacity: 0.3 + 0.12 * wave(1.2))
         }
-        let pulse = mood == .sleepy ? 0 : 0.6 * wave(mood == .busy ? 1.6 : 2.4)
-        add(.circle(CGPoint(x: 58, y: 18), radius: 7.5 + pulse), Ink.coral,
-            opacity: sleepy ? 0.5 + 0.1 * wave(4) : 1)
+        add(.circle(ball, radius: 5), ink.ball, opacity: m == .resting ? 0.6 : 1)
+        pencil(.circle(ball, radius: 5), ink.line, width: 1.4)
 
-        // Blush, everywhere except worried.
-        if mood != .worried && !glyph {
-            for x in [31.0, 77] { add(.circle(CGPoint(x: x, y: 82), radius: 4), Ink.coral, opacity: 0.85) }
+        // Face on the left half: eyes, blush under them, mouth between.
+        let ey = b.minY + b.height * 0.42
+        let eyes = [b.minX + b.width * 0.22, b.minX + b.width * 0.38]
+        let mx = (eyes[0] + eyes[1]) / 2, my = ey + (m == .resting ? 8.5 : 13)
+        if m != nil {
+            for (x, dx) in zip(eyes, [-7.0, 7.0]) {
+                add(.circle(CGPoint(x: x + dx, y: ey + 10), radius: 3.6), Ink.coral, opacity: 0.75)
+            }
+        }
+        let blink = m == .calm && (phase.map { $0.truncatingRemainder(dividingBy: 4.3) < 0.15 } ?? false)
+        func pill(_ x: CGFloat) -> CGRect { CGRect(x: x - 5, y: ey - 9, width: 10, height: 18) }
+        func line(_ d: String, width: CGFloat = 2.6) { add(.path(d), ink.line, stroked: true, width: width) }
+
+        switch m {
+        case nil:   // stale: dot eyes, flat mouth
+            for x in eyes { add(.circle(CGPoint(x: x, y: ey), radius: 2.8), ink.line) }
+            line("M\(n(mx - 4)) \(n(my)) L\(n(mx + 4)) \(n(my))")
+        case .resting:   // closed eyes, little "o"
+            for x in eyes { line("M\(n(x - 5)) \(n(ey)) Q\(n(x)) \(n(ey + 4.5)) \(n(x + 5)) \(n(ey))") }
+            add(.circle(CGPoint(x: mx, y: my), radius: 2.1), ink.line, stroked: true, width: 2)
+        case .calm, .busy:   // pill eyes; busy's pupils are spinning loading rings
+            for x in eyes {
+                if blink { line("M\(n(x - 5)) \(n(ey)) Q\(n(x)) \(n(ey + 2.5)) \(n(x + 5)) \(n(ey))"); continue }
+                add(.rect(pill(x), radius: 5), Ink.eye)
+                pencil(.rect(pill(x), radius: 5), ink.line, width: 2.2)
+                if m == .busy {
+                    line(arc(CGPoint(x: x, y: ey), 3, from: -90 + (phase ?? 0) * 300, sweep: 270), width: 1.9)
+                } else {
+                    add(.rect(CGRect(x: x - 2, y: ey - 4.5, width: 4, height: 9), radius: 2), ink.line)
+                }
+            }
+            line(m == .busy ? "M\(n(mx - 3.5)) \(n(my)) Q\(n(mx)) \(n(my + 1.5)) \(n(mx + 3.5)) \(n(my))"
+                            : "M\(n(mx - 4)) \(n(my - 1)) Q\(n(mx)) \(n(my + 3)) \(n(mx + 4)) \(n(my - 1))")
+        case .happy:   // smiling eyes, open grin
+            for x in eyes { line("M\(n(x - 5)) \(n(ey + 3)) Q\(n(x)) \(n(ey - 7)) \(n(x + 5)) \(n(ey + 3))", width: 3) }
+            add(.path("M\(n(mx - 5.5)) \(n(my - 2)) L\(n(mx + 5.5)) \(n(my - 2)) C\(n(mx + 5.5)) \(n(my + 3)) \(n(mx + 3)) \(n(my + 5)) \(n(mx)) \(n(my + 5)) C\(n(mx - 3)) \(n(my + 5)) \(n(mx - 5.5)) \(n(my + 3)) \(n(mx - 5.5)) \(n(my - 2)) Z"),
+                ink.line)
+        case .worried:   // X eyes, wobbly mouth
+            for x in eyes {
+                line("M\(n(x - 4)) \(n(ey - 4.5)) L\(n(x + 4)) \(n(ey + 4.5)) M\(n(x + 4)) \(n(ey - 4.5)) L\(n(x - 4)) \(n(ey + 4.5))", width: 3)
+            }
+            line("M\(n(mx - 6)) \(n(my)) Q\(n(mx - 3)) \(n(my - 3)) \(n(mx)) \(n(my)) Q\(n(mx + 3)) \(n(my + 3)) \(n(mx + 6)) \(n(my))")
         }
 
-        // Face: eyes ~18% of the body width, one stroke weight.
-        let eyes: [CGFloat] = [42, 66]
-        switch mood {
+        // Effects around kip. They stay upright and follow the posed antenna ball.
+        let bp = ball.applying(pose)
+        switch m {
+        case .resting:
+            for (i, (d, o)) in [("M84 50 L92 50 L84 58 L92 58", 0.8), ("M97 36 L103 36 L97 42 L103 42", 0.6)].enumerated() {
+                out.append(Part(geometry: .path(d), color: ink.line, stroked: true, width: 2.2,
+                                opacity: o * (0.85 + 0.15 * wave(4.5, Double(i) * 0.3))))
+            }
         case .happy:
-            for x in eyes {
-                add(.circle(CGPoint(x: x, y: 70), radius: 6), Ink.face, face: true)
-                if !glyph { add(.circle(CGPoint(x: x + 2, y: 68), radius: 2), Ink.white) }
+            for (i, (c, s, color)) in [(CGPoint(x: bp.x + 17, y: bp.y + 4), 5.5, Ink.coral),
+                                       (CGPoint(x: bp.x - 16, y: bp.y + 9), 4.0, ink.line),
+                                       (CGPoint(x: bp.x + 27, y: bp.y + 19), 3.2, ink.line)].enumerated() {
+                out.append(Part(geometry: .path(sparkle(c, s * (1 + 0.25 * wave(1.4, Double(i) * 0.3)))),
+                                color: color, opacity: 0.85))
             }
-            add(.path("M47 82 Q54 91 61 82"), Ink.face, stroked: true, face: true)
-        case .busy:
-            for x in eyes {
-                add(.path("M\(x - 6) 70 L\(x + 6) 70 C\(x + 6) 73.3 \(x + 3.3) 76 \(x) 76 C\(x - 3.3) 76 \(x - 6) 73.3 \(x - 6) 70 Z"),
-                    Ink.face, face: true)
-            }
-            add(.path("M48.5 81 L59.5 81 C59.5 85 57.5 88 54 88 C50.5 88 48.5 85 48.5 81 Z"), Ink.face, face: true)
         case .worried:
-            for x in eyes {
-                add(.path("M\(x - 5) 65 L\(x + 5) 75 M\(x + 5) 65 L\(x - 5) 75"), Ink.face, stroked: true, face: true)
+            for (i, deg) in [-150.0, -95, -40].enumerated() {
+                let a = deg * .pi / 180, u = CGPoint(x: cos(a), y: sin(a))
+                out.append(Part(geometry: .path("M\(n(bp.x + 9 * u.x)) \(n(bp.y + 9 * u.y)) L\(n(bp.x + 15 * u.x)) \(n(bp.y + 15 * u.y))"),
+                                color: Ink.alarm, stroked: true, width: 2.4, opacity: 0.7 + 0.3 * wave(0.3, Double(i) * 0.37)))
             }
-            add(.path("M44 84 Q49 79 54 84 Q59 89 64 84"), Ink.face, stroked: true, face: true)
-        case .sleepy:
-            for x in eyes {
-                add(.path("M\(x - 6) 70 Q\(x) 76 \(x + 6) 70"), Ink.face, stroked: true, face: true)
-            }
-            add(.circle(CGPoint(x: 54, y: 85), radius: 4), Ink.face, stroked: true, face: true)
+        default:
+            break
+        }
+        return out
+    }
+
+    /// The menu-bar icon: a flat slab, eyes standing above it, antenna to the right. Bold lines, no
+    /// hatching, so it stays crisp at 18 pt. It lies flat until something needs you, then it lifts
+    /// and its ball glows.
+    private static func glyphParts(_ mood: Mood, stale: Bool) -> [Part] {
+        let ink = Ink.palette(mood, stale: stale)
+        let m: Mood? = stale ? nil : mood
+        let slab = CGRect(x: 3, y: 22, width: 54, height: 16), r: CGFloat = 8
+        let lift = m == .worried ? 13.0 : m == .busy ? 7 : 0
+        let pose = Robot.pose(lift: lift, around: CGPoint(x: slab.maxX - r, y: slab.maxY - r))
+        var out: [Part] = []
+        func add(_ g: Part.Geometry, _ c: UInt32, stroked: Bool = false, width: CGFloat = 2.6, opacity: Double = 1) {
+            out.append(Part(geometry: g, color: c, stroked: stroked, width: width, opacity: opacity, pose: pose))
         }
 
-        // Effects beside the body. They do not lean with it.
-        var effects: [Part] = []
-        if !glyph {
-            switch mood {
-            case .busy:
-                for (i, d) in ["M100 64 L112 64", "M103 76 L112 76"].enumerated() {
-                    effects.append(Part(geometry: .path(d), color: Ink.blue, stroked: true,
-                                        opacity: 0.75 + 0.25 * wave(0.8, Double(i) * 0.5)))
-                }
-            case .worried:
-                for (i, d) in ["M98 42 L105 34", "M101 63 L112 62", "M98 86 L106 92"].enumerated() {
-                    effects.append(Part(geometry: .path(d), color: Ink.coral, stroked: true,
-                                        opacity: 0.7 + 0.3 * wave(0.7, Double(i) * 0.37)))
-                }
-            case .sleepy:
-                effects.append(Part(geometry: .path("M90 30 L101 30 L90 41 L101 41"), color: Ink.blue, stroked: true))
-                effects.append(Part(geometry: .path("M104 14 L112 14 L104 22 L112 22"), color: Ink.blue, stroked: true,
-                                    opacity: 0.8))
-            case .happy:
-                break
+        let straight = m == .happy
+        let ball = straight ? CGPoint(x: 42, y: 5.5) : CGPoint(x: 48.5, y: 7.5)
+        add(.rect(slab, radius: r), ink.body)
+        add(.rect(slab, radius: r), ink.line, stroked: true)
+        add(.path(straight ? "M42 22 L42 10" : "M42 22 L47 11.5"), ink.line, stroked: true, width: 2.4)
+        if m == .busy || m == .worried { add(.circle(ball, radius: 7.5), ink.ball, opacity: 0.35) }
+        add(.circle(ball, radius: 4.2), ink.ball)
+        add(.circle(ball, radius: 4.2), ink.line, stroked: true, width: 1.6)
+        for x: CGFloat in [17, 29] {
+            if m == .resting {   // closed eyes lie on the slab, so resting reads by shape too
+                add(.path("M\(n(x - 4.5)) 27.5 Q\(n(x)) 32 \(n(x + 4.5)) 27.5"), ink.line, stroked: true, width: 2.4)
+            } else {
+                let eye = CGRect(x: x - 4.5, y: 12, width: 9, height: 18)
+                add(.rect(eye, radius: 4.5), Ink.eye)
+                add(.rect(eye, radius: 4.5), ink.line, stroked: true, width: 2.4)
+                add(.rect(CGRect(x: x - 1.6, y: 16.5, width: 3.2, height: 9), radius: 1.6), ink.line)
             }
         }
+        return out
+    }
 
-        var all = body + effects
-        if glyph {
-            for i in all.indices { all[i].color = Ink.black; all[i].tilt = 0 }
-        } else if stale {
-            for i in all.indices { all[i].color = Ink.stale(all[i].color) }
+    // MARK: Path helpers
+
+    /// Diagonal pencil hatching across a rect; parts clip it to the body.
+    static func hatch(_ r: CGRect, gap: CGFloat = 4) -> String {
+        var d = ""
+        var x = r.minX - r.height
+        while x < r.maxX {
+            d += "M\(n(x)) \(n(r.maxY)) L\(n(x + r.height)) \(n(r.minY)) "
+            x += gap
         }
-        return all
+        return d
+    }
+
+    /// A circular arc as cubic curves, since the path parser has no A command. Angles in degrees,
+    /// clockwise on screen from 3 o'clock.
+    static func arc(_ c: CGPoint, _ r: CGFloat, from start: Double, sweep: Double) -> String {
+        let steps = max(1, Int((abs(sweep) / 90).rounded(.up)))
+        let da = sweep / Double(steps) * .pi / 180
+        let k = 4 / 3 * tan(da / 4)
+        var a = start * .pi / 180
+        var d = "M\(n(c.x + r * cos(a))) \(n(c.y + r * sin(a)))"
+        for _ in 0..<steps {
+            let e = a + da
+            d += " C\(n(c.x + r * (cos(a) - k * sin(a)))) \(n(c.y + r * (sin(a) + k * cos(a))))"
+                + " \(n(c.x + r * (cos(e) + k * sin(e)))) \(n(c.y + r * (sin(e) - k * cos(e))))"
+                + " \(n(c.x + r * cos(e))) \(n(c.y + r * sin(e)))"
+            a = e
+        }
+        return d
+    }
+
+    /// A four-point sparkle of radius `r`.
+    static func sparkle(_ c: CGPoint, _ r: CGFloat) -> String {
+        let s = r * 0.28
+        return "M\(n(c.x)) \(n(c.y - r)) Q\(n(c.x + s)) \(n(c.y - s)) \(n(c.x + r)) \(n(c.y))"
+            + " Q\(n(c.x + s)) \(n(c.y + s)) \(n(c.x)) \(n(c.y + r)) Q\(n(c.x - s)) \(n(c.y + s)) \(n(c.x - r)) \(n(c.y))"
+            + " Q\(n(c.x - s)) \(n(c.y - s)) \(n(c.x)) \(n(c.y - r)) Z"
     }
 
     // MARK: Drawing
@@ -189,20 +305,20 @@ enum Robot {
         return p
     }
 
-    /// The part's outline in design space, strokes already turned into fills.
+    static func shape(_ g: Part.Geometry) -> Path {
+        switch g {
+        case let .rect(r, radius): Path(roundedRect: r, cornerRadius: radius, style: .circular)
+        case let .circle(c, r): Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: 2 * r, height: 2 * r))
+        case let .path(d): path(d)
+        }
+    }
+
+    /// The part's outline in design space: strokes turned into fills, clipped, then posed.
     static func outline(_ part: Part) -> Path {
-        var p: Path
-        switch part.geometry {
-        case let .rect(r, radius): p = Path(roundedRect: r, cornerRadius: radius, style: .circular)
-        case let .circle(c, r): p = Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: 2 * r, height: 2 * r))
-        case let .path(d): p = path(d)
-        }
-        if part.tilt != 0 {
-            p = p.applying(CGAffineTransform(translationX: pivot.x, y: pivot.y)
-                .rotated(by: part.tilt * .pi / 180)
-                .translatedBy(x: -pivot.x, y: -pivot.y))
-        }
-        return part.stroked ? p.strokedPath(StrokeStyle(lineWidth: part.width, lineCap: .round, lineJoin: .round)) : p
+        var p = shape(part.geometry)
+        if part.stroked { p = p.strokedPath(StrokeStyle(lineWidth: part.width, lineCap: .round, lineJoin: .round)) }
+        if let clip = part.clip { p = p.intersection(shape(clip)) }
+        return part.pose.isIdentity ? p : p.applying(part.pose)
     }
 
     // MARK: SVG
@@ -210,64 +326,75 @@ enum Robot {
     static func svg(_ mood: Mood, stale: Bool = false, glyph: Bool = false) -> String {
         let parts = parts(mood, stale: stale, glyph: glyph)
         let b = glyph ? glyphBox : box
-        let name = glyph ? "menu-bar template, \(mood.rawValue)" : stale ? "stale data (\(mood.rawValue) in grey)" : mood.rawValue
+        let ink = Ink.palette(mood, stale: stale)
+        let name = (glyph ? "menu-bar icon, " : "") + (stale ? "stale data" : mood.rawValue)
         let size = glyph ? "width=\"\(n(18 * b.width / b.height))\" height=\"18\"" : "width=\"120\" height=\"120\""
-        let note = glyph
-            ? "Template image: one colour (black) plus a see-through face. macOS tints it for the menu bar."
-            : """
-            Palette: blue #008BE5, navy #004D80, coral #FD5C3F, face #002E4D, highlight #FFFFFF,
-                 sleepy body #0072BD / #003D66, stale greys #8E99A3 #5E6A75 #A9B2BA #2F3A44.
-            """
+        let note = "Colours: body \(hex(ink.body)), back \(hex(ink.back)), lines \(hex(ink.line)), ball \(hex(ink.ball)), "
+            + "blush \(hex(Ink.coral)), eyes #FFFFFF."
+            + (glyph ? " Menu-bar size: bold lines, no hatching or wobble." : " The pencil filter wobbles each line by at most 1.2.")
         var out = """
         <svg xmlns="http://www.w3.org/2000/svg" \(size) viewBox="\(n(b.minX)) \(n(b.minY)) \(n(b.width)) \(n(b.height))" fill="none">
         <title>kip, \(name)</title>
-        <!-- Generated from Shared/Robot.swift by the app's svg export. Edit the Swift, not this file.
+        <!-- Generated from Shared/Robot.swift by `kip --svg <dir>`. Edit the Swift, not this file.
              \(note) -->
 
         """
-        let drawn = parts.filter { !$0.knockout }
-        let cut = parts.filter(\.knockout)
-        if !cut.isEmpty {
-            out += "<defs><mask id=\"face\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"120\" height=\"120\">\n"
-            out += "<rect width=\"120\" height=\"120\" fill=\"#FFFFFF\"/>\n"
-            for var p in cut { p.color = 0; p.opacity = 1; out += element(p) }
-            out += "</mask></defs>\n<g mask=\"url(#face)\">\n"
+        var defs = glyph ? "" : """
+            <filter id="pencil" x="-5%" y="-5%" width="110%" height="110%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="grain"/>
+            <feDisplacementMap in="SourceGraphic" in2="grain" scale="1.2" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+
+            """
+        var drawn = ""
+        for (i, p) in parts.enumerated() {
+            if let clip = p.clip {
+                defs += "<clipPath id=\"clip\(i)\">\(element(Part(geometry: clip, color: 0)).dropLast())</clipPath>\n"
+                drawn += element(p, clip: "clip\(i)")
+            } else {
+                drawn += element(p)
+            }
         }
-        for p in drawn { out += element(p) }
-        if !cut.isEmpty { out += "</g>\n" }
+        if !defs.isEmpty { out += "<defs>\n\(defs)</defs>\n" }
+        out += glyph ? drawn : "<g filter=\"url(#pencil)\">\n\(drawn)</g>\n"
         return out + "</svg>\n"
     }
 
-    private static func element(_ p: Part) -> String {
+    private static func element(_ p: Part, clip: String? = nil) -> String {
         let paint = p.stroked
             ? "stroke=\"\(hex(p.color))\" stroke-width=\"\(n(p.width))\" stroke-linecap=\"round\" stroke-linejoin=\"round\""
             : "fill=\"\(hex(p.color))\""
         var extra = p.opacity < 1 ? " opacity=\"\(n(p.opacity))\"" : ""
-        if p.tilt != 0 { extra += " transform=\"rotate(\(n(p.tilt)) \(n(pivot.x)) \(n(pivot.y)))\"" }
+        if !p.pose.isIdentity {
+            let t = p.pose
+            extra += " transform=\"matrix(\([t.a, t.b, t.c, t.d, t.tx, t.ty].map { n($0) }.joined(separator: " ")))\""
+        }
+        if let clip { extra += " clip-path=\"url(#\(clip))\"" }
         switch p.geometry {
         case let .rect(r, radius):
             return "<rect x=\"\(n(r.minX))\" y=\"\(n(r.minY))\" width=\"\(n(r.width))\" height=\"\(n(r.height))\" rx=\"\(n(radius))\" \(paint)\(extra)/>\n"
         case let .circle(c, r):
             return "<circle cx=\"\(n(c.x))\" cy=\"\(n(c.y))\" r=\"\(n(r))\" \(paint)\(extra)/>\n"
         case let .path(d):
-            return "<path d=\"\(d)\" \(paint)\(extra)/>\n"
+            return "<path d=\"\(d.trimmingCharacters(in: .whitespaces))\" \(paint)\(extra)/>\n"
         }
     }
 
     private static func hex(_ c: UInt32) -> String { String(format: "#%06X", c) }
 
-    private static func n(_ v: some BinaryFloatingPoint) -> String {
+    static func n(_ v: some BinaryFloatingPoint) -> String {
         let s = String(format: "%.2f", Double(v))
-        return s.replacingOccurrences(of: #"\.?0+$"#, with: "", options: .regularExpression)
+        let t = s.replacingOccurrences(of: #"\.?0+$"#, with: "", options: .regularExpression)
+        return t == "-0" ? "0" : t
     }
 }
 
-/// Whether robots animate (the app) or stay still (widgets, snapshots).
+/// Whether kip animates (the app) or stays still (widgets, snapshots).
 extension EnvironmentValues {
     @Entry var robotAnimates = false
 }
 
-/// The full-colour robot. Static unless `robotAnimates` is set and Reduce Motion is off.
+/// kip in full colour pencil. Still unless `robotAnimates` is set and Reduce Motion is off.
 struct RobotView: View {
     var mood: Mood
     var stale = false
@@ -288,39 +415,36 @@ struct RobotView: View {
         }
         .aspectRatio(1, contentMode: .fit)
         .accessibilityElement()
-        .accessibilityLabel(label ?? "kip, \(mood.label)")
+        .accessibilityLabel(label ?? "kip, \(stale ? "stale" : mood.label)")
     }
 }
 
-/// The one-colour menu-bar glyph: body and antenna in `color`, face cut out. Size it 18 pt tall.
+/// The colour menu-bar icon. Size it 18 pt tall.
 struct RobotGlyph: View {
     var mood: Mood
-    var color: Color = .black
+    var stale = false
 
     var body: some View {
-        RobotParts(parts: Robot.parts(mood, glyph: true), box: Robot.glyphBox, tint: color)
+        RobotParts(parts: Robot.parts(mood, stale: stale, glyph: true), box: Robot.glyphBox)
             .aspectRatio(Robot.glyphBox.width / Robot.glyphBox.height, contentMode: .fit)
             .accessibilityElement()
-            .accessibilityLabel("kip, \(mood.label)")
+            .accessibilityLabel("kip, \(stale ? "stale" : mood.label)")
     }
 }
 
 struct RobotParts: View {
     var parts: [Robot.Part]
     var box: CGRect
-    var tint: Color? = nil
 
     var body: some View {
         ZStack {
             ForEach(parts.indices, id: \.self) { i in
                 let part = parts[i]
                 RobotPartShape(outline: Robot.outline(part), box: box)
-                    .fill(tint ?? Color(hex: part.color))
+                    .fill(Color(hex: part.color))
                     .opacity(part.opacity)
-                    .blendMode(part.knockout ? .destinationOut : .normal)
             }
         }
-        .compositingGroup()
     }
 }
 

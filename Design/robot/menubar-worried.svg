@@ -1,17 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="14.4" height="18" viewBox="20 6 80 100" fill="none">
-<title>kip, menu-bar template, worried</title>
-<!-- Generated from Shared/Robot.swift by the app's svg export. Edit the Swift, not this file.
-     Template image: one colour (black) plus a see-through face. macOS tints it for the menu bar. -->
-<defs><mask id="face" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
-<rect width="120" height="120" fill="#FFFFFF"/>
-<path d="M37.0 65 L47.0 75 M47.0 65 L37.0 75" stroke="#000000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M61.0 65 L71.0 75 M71.0 65 L61.0 75" stroke="#000000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M44 84 Q49 79 54 84 Q59 89 64 84" stroke="#000000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-</mask></defs>
-<g mask="url(#face)">
-<rect x="31" y="49" width="64" height="56" rx="20" fill="#000000" opacity="0.5"/>
-<rect x="22" y="46" width="64" height="56" rx="20" fill="#000000"/>
-<path d="M54 46 C50 37 52 28 57 23" stroke="#000000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="58" cy="18" r="7.5" fill="#000000"/>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" width="27.43" height="18" viewBox="0 -2 64 42" fill="none">
+<title>kip, menu-bar icon, worried</title>
+<!-- Generated from Shared/Robot.swift by `kip --svg <dir>`. Edit the Swift, not this file.
+     Colours: body #FF8A4C, back #FFC9A8, lines #7A2E0B, ball #FF3B30, blush #FF7A5C, eyes #FFFFFF. Menu-bar size: bold lines, no hatching or wobble. -->
+<rect x="3" y="22" width="54" height="16" rx="8" fill="#FF8A4C" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<rect x="3" y="22" width="54" height="16" rx="8" stroke="#7A2E0B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<path d="M42 22 L47 11.5" stroke="#7A2E0B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<circle cx="48.5" cy="7.5" r="7.5" fill="#FF3B30" opacity="0.35" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<circle cx="48.5" cy="7.5" r="4.2" fill="#FF3B30" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<circle cx="48.5" cy="7.5" r="4.2" stroke="#7A2E0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<rect x="12.5" y="12" width="9" height="18" rx="4.5" fill="#FFFFFF" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<rect x="12.5" y="12" width="9" height="18" rx="4.5" stroke="#7A2E0B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<rect x="15.4" y="16.5" width="3.2" height="9" rx="1.6" fill="#7A2E0B" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<rect x="24.5" y="12" width="9" height="18" rx="4.5" fill="#FFFFFF" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<rect x="24.5" y="12" width="9" height="18" rx="4.5" stroke="#7A2E0B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<rect x="27.4" y="16.5" width="3.2" height="9" rx="1.6" fill="#7A2E0B" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
 </svg>

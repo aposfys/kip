@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="27.43" height="18" viewBox="0 -2 64 42" fill="none">
+<title>kip, menu-bar icon, resting</title>
+<!-- Generated from Shared/Robot.swift by `kip --svg <dir>`. Edit the Swift, not this file.
+     Colours: body #7A7FD9, back #C5C8F5, lines #2B2E6B, ball #FF7A5C, blush #FF7A5C, eyes #FFFFFF. Menu-bar size: bold lines, no hatching or wobble. -->
+<rect x="3" y="22" width="54" height="16" rx="8" fill="#7A7FD9"/>
+<rect x="3" y="22" width="54" height="16" rx="8" stroke="#2B2E6B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M42 22 L47 11.5" stroke="#2B2E6B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="48.5" cy="7.5" r="4.2" fill="#FF7A5C"/>
+<circle cx="48.5" cy="7.5" r="4.2" stroke="#2B2E6B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M12.5 27.5 Q17 32 21.5 27.5" stroke="#2B2E6B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M24.5 27.5 Q29 32 33.5 27.5" stroke="#2B2E6B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

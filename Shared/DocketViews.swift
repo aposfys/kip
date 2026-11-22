@@ -1,18 +1,26 @@
 import SwiftUI
 import WidgetKit
 
-/// The robot's colours. Coral is kept for alerts and overdue items; navy and sky carry text accents.
+/// kip's colours on paper. Coral is kept for alerts and overdue items; calm kip's blues carry text accents.
 enum Palette {
-    static let blue = Color(hex: Robot.Ink.blue)
-    static let navy = Color(hex: Robot.Ink.navy)
+    static let calm = Robot.Ink.palette(.calm)
+    static let blue = Color(hex: calm.body)
+    static let navy = Color(hex: calm.line)
     static let coral = Color(hex: Robot.Ink.coral)
+    /// The card: warm off-white paper, or a warm dark paper.
+    static func paper(_ scheme: ColorScheme) -> Color { Color(hex: scheme == .dark ? 0x26231F : Robot.Ink.paper) }
 
-    /// Small accent text: navy on the light card is 7.9:1 or more, sky on the dark card 8.2:1 or more.
-    static func accent(_ scheme: ColorScheme) -> Color { scheme == .dark ? Color(hex: 0x6CC0FF) : navy }
-    /// Alert text: 5.3:1 or more on the light card, 5.4:1 or more on the dark card and its tinted pills.
+    /// Small accent text and rings: navy on paper is 7.5:1, pale blue on the dark paper 11:1.
+    static func accent(_ scheme: ColorScheme) -> Color { scheme == .dark ? Color(hex: calm.back) : navy }
+    /// A mood's own accent: its line colour on paper (5.6:1 or more), its pale back colour on dark paper.
+    static func mood(_ mood: Mood, stale: Bool, _ scheme: ColorScheme) -> Color {
+        let p = Robot.Ink.palette(mood, stale: stale)
+        return Color(hex: scheme == .dark ? p.back : p.line)
+    }
+    /// Alert text: 5.9:1 or more on paper, 5.4:1 or more on the dark paper and its tinted pills.
     static func alert(_ scheme: ColorScheme) -> Color { scheme == .dark ? Color(hex: 0xFF7B63) : Color(hex: 0xB8321A) }
-    /// Tint for the large widget's header band and the status pill.
-    static let band = blue.opacity(0.08)
+    /// The large widget's header band: a slightly deeper sheet of the same paper.
+    static func band(_ scheme: ColorScheme) -> Color { scheme == .dark ? Color.white.opacity(0.05) : Color(hex: 0xEFE6D4).opacity(0.7) }
 }
 
 extension Color {
@@ -41,20 +49,49 @@ enum DocketFamily: String, CaseIterable, Identifiable {
     }
 }
 
-/// A quiet blue-tinted card, light or dark.
+/// A warm paper card, light or dark, with a faint grain.
 struct DocketBackground: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        LinearGradient(colors: scheme == .dark ? [Color(hex: 0x1A2129), Color(hex: 0x12171D)]
-                                               : [Color(hex: 0xF5FAFF), Color(hex: 0xE9F3FD)],
-                       startPoint: .top, endPoint: .bottom)
+        Palette.paper(scheme).overlay {
+            PaperGrain().opacity(scheme == .dark ? 0.6 : 1).accessibilityHidden(true)
+        }
+    }
+}
+
+/// Paper grain: fixed specks and short fibres, the same on every redraw.
+struct PaperGrain: View {
+    var body: some View {
+        Canvas { ctx, size in
+            var seed: UInt64 = 0x9E3779B97F4A7C15
+            func next() -> CGFloat {
+                seed = seed &* 6364136223846793005 &+ 1442695040888963407
+                return CGFloat(seed >> 33) / CGFloat(1 << 31)
+            }
+            let count = Int(size.width * size.height / 90)
+            for i in 0..<count {
+                let p = CGPoint(x: next() * size.width, y: next() * size.height)
+                let shade = next() < 0.5 ? Color(hex: 0x8A7A5C) : Color.white
+                if i % 9 == 0 {   // a fibre
+                    var fibre = Path()
+                    fibre.move(to: p)
+                    fibre.addLine(to: CGPoint(x: p.x + 2 + next() * 4, y: p.y + (next() - 0.5) * 2))
+                    ctx.stroke(fibre, with: .color(shade.opacity(0.07)), lineWidth: 0.5)
+                } else {
+                    let r = 0.3 + next() * 0.5
+                    ctx.fill(Path(ellipseIn: CGRect(x: p.x - r, y: p.y - r, width: 2 * r, height: 2 * r)),
+                             with: .color(shade.opacity(0.06 + next() * 0.06)))
+                }
+            }
+        }
     }
 }
 
 struct DocketCard: View {
     var model: DocketModel
     var family: DocketFamily
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         switch family {
@@ -68,9 +105,10 @@ struct DocketCard: View {
 
     private var small: some View {
         ZStack(alignment: .topTrailing) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
                 robot.frame(width: 92, height: 92)
                 Spacer(minLength: 0)
+                OneThingLabel().accessibilityHidden(true)
                 Text(model.oneThing)
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(2)
@@ -87,7 +125,7 @@ struct DocketCard: View {
                 robot.frame(width: 108, height: 108)
                 Text(model.moodLine)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(Color.muted)
+                    .foregroundStyle(Palette.mood(model.mood, stale: model.isBriefStale, scheme))
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
                     .accessibilityHidden(true)
@@ -139,16 +177,24 @@ struct DocketCard: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .accessibilityElement(children: .combine)
-                    HStack(spacing: 8) {
+                    // The mood line wins: the agents count shrinks to a number, then goes, before the pill truncates.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 8) {
+                            StatusPill(model: model).fixedSize()
+                            if model.agentsRunning > 0 { AgentsLabel(model: model).fixedSize() }
+                        }
+                        HStack(spacing: 6) {
+                            StatusPill(model: model).fixedSize()
+                            if model.agentsRunning > 0 { AgentsLabel(model: model, compact: true).fixedSize() }
+                        }
                         StatusPill(model: model)
-                        if model.agentsRunning > 0 { AgentsLabel(model: model).fixedSize() }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(8)
             .layoutPriority(1)
-            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Palette.band))
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Palette.band(scheme)))
 
             if let deadline = model.nextDeadline { DeadlineRow(item: deadline, model: model) }
             VStack(alignment: .leading, spacing: 4) {
@@ -190,18 +236,19 @@ struct OneThingLabel: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        Text("ONE THING").font(.caption2.weight(.bold)).foregroundStyle(Palette.accent(scheme))
+        Text("ONE THING").font(.caption2.weight(.bold)).kerning(0.6).foregroundStyle(Color.muted)
     }
 }
 
-/// The mood line in a capsule: alert-tinted when worried, quiet blue otherwise.
+/// The mood line in a capsule, in kip's mood colour: alert-tinted when worried.
 struct StatusPill: View {
     var model: DocketModel
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         let alert = model.mood == .worried && !model.isBriefStale
-        let color = alert ? Palette.alert(scheme) : Palette.accent(scheme)
+        let color = alert ? Palette.alert(scheme) : Palette.mood(model.mood, stale: model.isBriefStale, scheme)
+        let tint = Color(hex: Robot.Ink.palette(model.mood, stale: model.isBriefStale).body)
         HStack(spacing: 4) {
             Image(systemName: Self.symbol(model.mood))
             Text(model.moodLine).lineLimit(1)
@@ -210,16 +257,17 @@ struct StatusPill: View {
         .foregroundStyle(color)
         .padding(.horizontal, 8)
         .padding(.vertical, 3)
-        .background(Capsule().fill(alert ? Palette.coral.opacity(scheme == .dark ? 0.14 : 0.12) : Palette.blue.opacity(0.12)))
+        .background(Capsule().fill(alert ? Palette.coral.opacity(scheme == .dark ? 0.14 : 0.12) : tint.opacity(scheme == .dark ? 0.16 : 0.22)))
         .accessibilityElement(children: .combine)
     }
 
     static func symbol(_ mood: Mood) -> String {
         switch mood {
-        case .happy: "checkmark"
+        case .resting: "moon.fill"
+        case .calm: "sun.max.fill"
+        case .happy: "checkmark.seal.fill"
         case .busy: "bolt.fill"
         case .worried: "exclamationmark.triangle.fill"
-        case .sleepy: "moon.fill"
         }
     }
 }
@@ -298,11 +346,13 @@ struct DeadlineRow: View {
 /// "2 agents" beside the large widget's status pill, from the last inbox scan.
 struct AgentsLabel: View {
     var model: DocketModel
+    var compact = false
 
     var body: some View {
         HStack(spacing: 3) {
             Image(systemName: "sparkles")
-            Text(model.agentsRunning == 1 ? "1 agent" : "\(model.agentsRunning) agents").monospacedDigit()
+            Text(compact ? "\(model.agentsRunning)" : model.agentsRunning == 1 ? "1 agent" : "\(model.agentsRunning) agents")
+                .monospacedDigit()
         }
         .font(.caption2)
         .foregroundStyle(Color.muted)
@@ -424,6 +474,7 @@ struct Ring: View {
     var stale: Bool
     /// One line of text beside a smaller ring (medium widget).
     var compact = false
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         let size: CGFloat = compact ? 22 : 28
@@ -458,7 +509,7 @@ struct Ring: View {
 
     private var arc: Color {
         if stale { return Color.primary.opacity(0.35) }
-        return warn ? Palette.coral : Palette.blue
+        return warn ? Palette.coral : Palette.accent(scheme)
     }
 }
 

@@ -1,18 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="none">
-<title>kip, stale data (happy in grey)</title>
-<!-- Generated from Shared/Robot.swift by the app's svg export. Edit the Swift, not this file.
-     Palette: blue #008BE5, navy #004D80, coral #FD5C3F, face #002E4D, highlight #FFFFFF,
-     sleepy body #0072BD / #003D66, stale greys #8E99A3 #5E6A75 #A9B2BA #2F3A44. -->
-<path d="M22 90 C12 95 4 89 6 80 C8 72 19 71 20 78 C21 86 9 88 6 79 C3.5 71 7 61 13 55" stroke="#8E99A3" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-<rect x="31" y="49" width="64" height="56" rx="20" fill="#5E6A75"/>
-<rect x="22" y="46" width="64" height="56" rx="20" fill="#8E99A3"/>
-<path d="M54 46 C50 37 52 28 57 23" stroke="#5E6A75" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="58" cy="18" r="7.5" fill="#A9B2BA"/>
-<circle cx="31" cy="82" r="4" fill="#A9B2BA" opacity="0.85"/>
-<circle cx="77" cy="82" r="4" fill="#A9B2BA" opacity="0.85"/>
-<circle cx="42" cy="70" r="6" fill="#2F3A44"/>
-<circle cx="44" cy="68" r="2" fill="#FFFFFF"/>
-<circle cx="66" cy="70" r="6" fill="#2F3A44"/>
-<circle cx="68" cy="68" r="2" fill="#FFFFFF"/>
-<path d="M47 82 Q54 91 61 82" stroke="#2F3A44" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+<title>kip, stale data</title>
+<!-- Generated from Shared/Robot.swift by `kip --svg <dir>`. Edit the Swift, not this file.
+     Colours: body #C9C2B0, back #E6E1D5, lines #6B6555, ball #D8A797, blush #FF7A5C, eyes #FFFFFF. The pencil filter wobbles each line by at most 1.2. -->
+<defs>
+<filter id="pencil" x="-5%" y="-5%" width="110%" height="110%">
+<feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="grain"/>
+<feDisplacementMap in="SourceGraphic" in2="grain" scale="1.2" xChannelSelector="R" yChannelSelector="G"/>
+</filter>
+<clipPath id="clip5"><rect x="10" y="61" width="90" height="36" rx="16.92" fill="#000000"/></clipPath>
+</defs>
+<g filter="url(#pencil)">
+<path d="M16 99.5 C40 98.6 76 100.2 104 99.2" stroke="#6B6555" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.2"/>
+<rect x="16" y="57" width="90" height="36" rx="16.92" fill="#E6E1D5"/>
+<rect x="16" y="57" width="90" height="36" rx="16.92" stroke="#6B6555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<rect x="16" y="57" width="90" height="36" rx="16.92" stroke="#6B6555" stroke-width="0.72" stroke-linecap="round" stroke-linejoin="round" opacity="0.35" transform="matrix(1 0 0 1 0.8 -0.6)"/>
+<rect x="10" y="61" width="90" height="36" rx="16.92" fill="#C9C2B0" opacity="0.94"/>
+<path d="M-26 97 L10 61 M-22 97 L14 61 M-18 97 L18 61 M-14 97 L22 61 M-10 97 L26 61 M-6 97 L30 61 M-2 97 L34 61 M2 97 L38 61 M6 97 L42 61 M10 97 L46 61 M14 97 L50 61 M18 97 L54 61 M22 97 L58 61 M26 97 L62 61 M30 97 L66 61 M34 97 L70 61 M38 97 L74 61 M42 97 L78 61 M46 97 L82 61 M50 97 L86 61 M54 97 L90 61 M58 97 L94 61 M62 97 L98 61 M66 97 L102 61 M70 97 L106 61 M74 97 L110 61 M78 97 L114 61 M82 97 L118 61 M86 97 L122 61 M90 97 L126 61 M94 97 L130 61 M98 97 L134 61" stroke="#6B6555" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.13" clip-path="url(#clip5)"/>
+<rect x="10" y="61" width="90" height="36" rx="16.92" stroke="#6B6555" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<rect x="10" y="61" width="90" height="36" rx="16.92" stroke="#6B6555" stroke-width="1.04" stroke-linecap="round" stroke-linejoin="round" opacity="0.35" transform="matrix(1 0 0 1 0.8 -0.6)"/>
+<path d="M55 61 C54 53 56 46 62 42" stroke="#6B6555" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="63.6" cy="38.4" r="5" fill="#D8A797"/>
+<circle cx="63.6" cy="38.4" r="5" stroke="#6B6555" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<circle cx="63.6" cy="38.4" r="5" stroke="#6B6555" stroke-width="0.56" stroke-linecap="round" stroke-linejoin="round" opacity="0.35" transform="matrix(1 0 0 1 0.8 -0.6)"/>
+<circle cx="29.8" cy="76.12" r="2.8" fill="#6B6555"/>
+<circle cx="44.2" cy="76.12" r="2.8" fill="#6B6555"/>
+<path d="M33 89.12 L41 89.12" stroke="#6B6555" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
 </svg>

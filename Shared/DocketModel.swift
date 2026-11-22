@@ -1,7 +1,7 @@
 import Foundation
 
 enum Mood: String, CaseIterable, Identifiable {
-    case happy, busy, worried, sleepy
+    case resting, calm, happy, busy, worried
     var id: String { rawValue }
     var label: String { rawValue.capitalized }
 }
@@ -85,22 +85,25 @@ struct DocketModel {
         return brief == nil ? "Your morning brief lands here after 08:00." : "Nothing pressing. Enjoy the day."
     }
 
-    /// sleepy 22:00–07:00, then worried (overdue or Mac issue), then busy (3+ due today), else happy.
+    /// resting 22:00–07:00, then worried (overdue or Mac issue), then busy (3+ due today),
+    /// then happy (a brief for today with nothing left due), else calm.
     var mood: Mood {
         if let moodOverride { return moodOverride }
         let hour = Calendar.current.component(.hour, from: now)
-        if hour >= 22 || hour < 7 { return .sleepy }
+        if hour >= 22 || hour < 7 { return .resting }
         if overdue > 0 || !issues.isEmpty { return .worried }
         if isBriefForToday && today.count >= 3 { return .busy }
-        return .happy
+        if isBriefForToday && today.isEmpty { return .happy }
+        return .calm
     }
 
     var moodLine: String {
         switch mood {
-        case .sleepy: "Resting till 07:00"
+        case .resting: "Resting till 07:00"
         case .worried: overdue > 0 ? "\(overdue) overdue" : (issues.first ?? "Something needs a look")
         case .busy: "\(today.count) things today"
-        case .happy: "All calm"
+        case .happy: "Nothing due today"
+        case .calm: isBriefForToday ? (today.count == 1 ? "1 thing today" : "\(today.count) things today") : "All calm"
         }
     }
 

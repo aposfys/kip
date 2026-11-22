@@ -25,8 +25,9 @@ enum Snapshot {
     static func writeSVGs(to dir: URL) {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         var files: [(String, String)] = Mood.allCases.map { ("\($0.rawValue).svg", Robot.svg($0)) }
-        files.append(("stale.svg", Robot.svg(.happy, stale: true)))
+        files.append(("stale.svg", Robot.svg(.calm, stale: true)))
         files += Mood.allCases.map { ("menubar-\($0.rawValue).svg", Robot.svg($0, glyph: true)) }
+        files.append(("menubar-stale.svg", Robot.svg(.calm, stale: true, glyph: true)))
         for (name, svg) in files {
             let url = dir.appendingPathComponent(name)
             do {
@@ -85,10 +86,10 @@ enum Snapshot {
                                 ("tasks", tasks, false), ("task-editor", editor, false)] {
             window(CompanionView().environment(s), dark: dark, to: dir.appendingPathComponent("companion-\(name).png"))
         }
-        for mood in Mood.allCases {
-            if let tiff = MenuIcon.image(mood).tiffRepresentation, let rep = NSBitmapImageRep(data: tiff),
+        for (mood, stale) in Mood.allCases.map({ ($0, false) }) + [(.calm, true)] {
+            if let tiff = MenuIcon.image(mood, stale: stale).tiffRepresentation, let rep = NSBitmapImageRep(data: tiff),
                let png = rep.representation(using: .png, properties: [:]) {
-                try? png.write(to: dir.appendingPathComponent("menubar-\(mood.rawValue).png"))
+                try? png.write(to: dir.appendingPathComponent("menubar-\(stale ? "stale" : mood.rawValue).png"))
             }
         }
     }
@@ -182,7 +183,7 @@ struct SnapshotSheet: View {
 /// Every mood at 32, 44, 64 and 120 pt: colour on light and dark cards, grayscale, and the menu-bar glyph.
 struct MoodSheet: View {
     private let sizes: [CGFloat] = [32, 44, 64, 120]
-    private let rows: [(String, Mood, Bool)] = Mood.allCases.map { ($0.label, $0, false) } + [("Stale", .happy, true)]
+    private let rows: [(String, Mood, Bool)] = Mood.allCases.map { ($0.label, $0, false) } + [("Stale", .calm, true)]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -218,15 +219,15 @@ struct MoodSheet: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
-    /// The template glyph the way the menu bar tints it: black on a light bar, white on a dark one.
+    /// The colour menu-bar icon on a light and a dark bar, at 18 pt and doubled.
     private func glyphs(_ scheme: ColorScheme) -> some View {
         let ink: Color = scheme == .dark ? .white : .black
         return HStack(spacing: 16) {
             Text("Menu bar, \(scheme == .dark ? "dark" : "light")").font(.callout.weight(.medium))
-            ForEach(Mood.allCases) { mood in
+            ForEach(rows, id: \.0) { row in
                 HStack(spacing: 6) {
-                    RobotGlyph(mood: mood, color: ink).frame(height: 18)
-                    RobotGlyph(mood: mood, color: ink).frame(height: 36)
+                    RobotGlyph(mood: row.1, stale: row.2).frame(height: 18)
+                    RobotGlyph(mood: row.1, stale: row.2).frame(height: 36)
                 }
             }
         }
@@ -253,13 +254,19 @@ enum SelfTest {
         d.mac?.issues = []
         func mood(_ now: Date) -> Mood { DocketModel(data: d, now: now).mood }
 
-        precondition(mood(noon) == .happy, "happy")
-        precondition(mood(at(23)) == .sleepy && mood(at(6)) == .sleepy, "sleepy")
+        precondition(mood(noon) == .calm, "calm")
+        precondition(DocketModel(data: d, now: noon).moodLine == "2 things today", "calm line")
+        precondition(mood(at(23)) == .resting && mood(at(6)) == .resting, "resting")
+        d.brief?.today = []
+        precondition(mood(noon) == .happy && DocketModel(data: d, now: noon).moodLine == "Nothing due today", "happy")
+        d.brief?.date = DocketModel.dayString(cal.date(byAdding: .day, value: -1, to: noon)!)
+        precondition(mood(noon) == .calm, "an old brief is never happy")
+        d.brief?.date = DocketModel.dayString(noon)
         d.brief?.today = [item, item, item]
         precondition(mood(noon) == .busy, "busy")
         d.brief?.overdueCount = 1
         precondition(mood(noon) == .worried, "worried: overdue")
-        precondition(mood(at(23)) == .sleepy, "sleepy beats worried")
+        precondition(mood(at(23)) == .resting, "resting beats worried")
         d.brief?.overdueCount = 0
         d.mac?.issues = ["Disk low"]
         precondition(mood(noon) == .worried, "worried: mac issue")
@@ -292,8 +299,13 @@ enum SelfTest {
         precondition(m.agentsRunning == 0, "old scan hides agents")
         let box = Robot.path("M10 20 L30 20 C30 30 30 40 10 40 Q0 30 10 20 Z").boundingRect
         precondition(box.minX >= 0 && box.minY == 20 && box.maxX == 30 && box.maxY == 40, "svg path parser")
-        precondition(Robot.svg(.worried).contains("rotate(-5 58 76)"), "worried lean")
-        precondition(!Robot.svg(.happy, glyph: true).contains("#008BE5"), "glyph is one colour")
+        let worried = Robot.svg(.worried)
+        precondition(worried.contains("matrix(") && worried.contains("#FF3B30"), "worried jolts up, red ball")
+        precondition(Robot.svg(.calm).contains("feTurbulence") && Robot.svg(.calm).contains("clipPath"), "pencil and hatching")
+        let glyph = Robot.svg(.calm, glyph: true)
+        precondition(!glyph.contains("filter") && !glyph.contains("clipPath") && glyph.contains("#5AB8FF"), "crisp colour glyph")
+        let lifted = Robot.outline(Robot.parts(.busy)[4]).cgPath.boundingBoxOfPath, flat = Robot.outline(Robot.parts(.calm)[4]).cgPath.boundingBoxOfPath
+        precondition(lifted.minY < flat.minY - 10 && abs(lifted.maxY - flat.maxY) < 3, "busy lifts its front, tail stays down")
         companion(noon: noon, at: at)
         print("selftest ok")
     }
