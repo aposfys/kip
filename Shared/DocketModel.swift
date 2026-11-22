@@ -39,6 +39,46 @@ struct DocketModel {
     var overdue: Int { brief?.overdueCount ?? 0 }
     var open: Int { brief?.openCount ?? 0 }
     var issues: [String] { mac?.issues ?? [] }
+    var weekCount: Int { max(brief?.weekCount ?? 0, week.count) }
+    var nextDeadline: DocketData.Item? { brief?.nextDeadline }
+
+    /// "3 waiting · 4 no date", or nil when both are zero or missing.
+    var laterLine: String? {
+        let waiting = brief?.waitingCount ?? 0, nodate = brief?.nodateCount ?? 0
+        let parts = [waiting > 0 ? "\(waiting) waiting" : nil, nodate > 0 ? "\(nodate) no date" : nil].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    static let scanFreshFor: TimeInterval = 3 * 3600
+    static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "HH:mm"
+        return f
+    }()
+
+    var scan: DocketData.Scan? { data?.scan }
+    var scanned: Date? { Self.parse(scan?.scannedAt) ?? Self.parse(scan?.updatedAt) }
+
+    /// Agents working at the last scan. 0 once the scan is over 3 hours old, so an old count never shows.
+    var agentsRunning: Int {
+        guard let scanned, now.timeIntervalSince(scanned) <= Self.scanFreshFor else { return 0 }
+        return scan?.agentsRunning ?? scan?.agents?.count ?? 0
+    }
+
+    var agentsSpoken: String {
+        let titles = (scan?.agents ?? []).map(\.title).joined(separator: ", ")
+        let count = agentsRunning == 1 ? "1 agent working" : "\(agentsRunning) agents working"
+        return titles.isEmpty ? count : "\(count): \(titles)"
+    }
+
+    /// "Mail checked 14:05" today, "Mail checked Mon" on an older day.
+    var mailChecked: String? {
+        guard let scanned else { return nil }
+        let when = Calendar.current.isDate(scanned, inSameDayAs: now)
+            ? Self.timeFormatter.string(from: scanned) : scanned.formatted(.dateTime.weekday(.abbreviated))
+        return "Mail checked \(when)"
+    }
 
     var oneThing: String {
         if let t = brief?.oneThing?.trimmingCharacters(in: .whitespacesAndNewlines), !t.isEmpty { return t }

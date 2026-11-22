@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
-"""Merge one part ("mac" or "brief") into the Docket widget's data file. Zero-token: no network, no Claude.
+"""Merge one part ("mac", "brief" or "scan") into the Docket widget's data file. Zero-token: no network, no Claude.
 
   pc-health.sh --json | docket-widget-write.py mac      hourly, from the local.pc-health LaunchAgent
   docket-widget-write.py brief < brief.json             end of the daily-health-tasks-brief task
+  docket-widget-write.py scan < scan.json               end of the hourly inbox scan task
   docket-widget-write.py brief --file brief.json
   docket-widget-write.py --show                         print the file path and contents
 
 brief.json: {"date": "YYYY-MM-DD", "one_thing": "...", "today": [{"title", "tag", "due"}],
-             "week": [...], "overdue_count": 0, "open_count": 0}
+             "week": [...], "overdue_count": 0, "open_count": 0,
+             "week_count": 0, "waiting_count": 0, "nodate_count": 0,
+             "next_deadline": {"title", "tag", "due"}}
+  week holds the first 10 tasks due this week; week_count counts all of them. Every key but date is optional.
 tag is phd, work, personal or cal (calendar event). due is "HH:MM", "YYYY-MM-DD" or "YYYY-MM-DD HH:MM".
+scan.json: {"scanned_at": "ISO time mail was last checked", "agents_running": 2,
+            "agents": [{"title", "project"}]}   ("running" is read as "agents", so agents/now can be piped in)
 
 The file is ~/.claude/docket/docket.json (override with DOCKET_JSON=/path). The widget reads it
 through a read-only sandbox exception. Not an App Group container: macOS blocks other processes,
 like this launchd job, from writing into those.
 Only known keys are kept and every string is cut short, so mail bodies or secrets cannot end up in it.
-Writing one part never touches the other part.
+Writing one part never touches the others.
 """
 import fcntl
 import json
@@ -86,11 +92,39 @@ def clean_brief(d):
         "week": items("week", 10),
         "overdue_count": whole(d.get("overdue_count")) or 0,
         "open_count": whole(d.get("open_count")),
+        "week_count": whole(d.get("week_count")),
+        "waiting_count": whole(d.get("waiting_count")),
+        "nodate_count": whole(d.get("nodate_count")),
+        "next_deadline": clean_item(d.get("next_deadline")),
     }
 
 
+def stamp(v):
+    """Any ISO time (with Z or fractions, as JavaScript writes it) as local time to the second, else None."""
+    try:
+        t = datetime.fromisoformat(str(v).strip().replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t.astimezone().isoformat(timespec="seconds")
+
+
+def clean_scan(d):
+    raw = d.get("agents") if "agents" in d else d.get("running")
+    agents = [{"title": text(a.get("title"), 60), "project": text(a.get("project"), 30)}
+              for a in listed(raw, 20) if isinstance(a, dict) and text(a.get("title"), 60)]
+    running = whole(d.get("agents_running"))
+    return {
+        "scanned_at": stamp(d.get("scanned_at") or d.get("checked_at")),
+        "agents_running": len(agents) if running is None else running,
+        "agents": agents[:5],
+    }
+
+
+CLEAN = {"mac": clean_mac, "brief": clean_brief, "scan": clean_scan}
+
+
 def write(part, obj, path):
-    clean = clean_mac(obj) if part == "mac" else clean_brief(obj)
+    clean = CLEAN[part](obj)
     now = datetime.now().astimezone().isoformat(timespec="seconds")
     clean["updated_at"] = now
     folder = os.path.dirname(path) or "."
@@ -119,7 +153,7 @@ def main(argv):
         print(path)
         print(open(path).read() if os.path.exists(path) else "(no file yet)")
         return
-    if not argv or argv[0] not in ("mac", "brief"):
+    if not argv or argv[0] not in CLEAN:
         sys.exit(__doc__)
     part = argv[0]
     raw = open(argv[2]).read() if argv[1:2] == ["--file"] and len(argv) > 2 else sys.stdin.read()

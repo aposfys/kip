@@ -2,11 +2,13 @@ import Foundation
 import Security
 
 /// The one local file the widget reads. Writers: ~/.claude/scripts/docket-widget-write.py
-/// (hourly `mac` part from pc-health.sh, daily `brief` part from the morning brief task).
+/// (hourly `mac` part from pc-health.sh, daily `brief` part from the morning brief task,
+/// hourly `scan` part from the inbox scan task).
 struct DocketData: Codable, Equatable {
     var updatedAt: String?
     var mac: Mac?
     var brief: Brief?
+    var scan: Scan?
 
     struct Mac: Codable, Equatable {
         var updatedAt: String?
@@ -28,12 +30,31 @@ struct DocketData: Codable, Equatable {
         var week: [Item]?
         var overdueCount: Int?
         var openCount: Int?
+        /// All tasks due this week; `week` holds only the first 10.
+        var weekCount: Int?
+        var waitingCount: Int?
+        var nodateCount: Int?
+        /// The next PhD or personal deadline, which may be weeks away.
+        var nextDeadline: Item?
     }
 
     struct Item: Codable, Equatable, Hashable {
         var title: String
         var tag: String?
         var due: String?
+    }
+
+    /// What the hourly inbox scan saw: when mail was last checked and which agents were working.
+    struct Scan: Codable, Equatable {
+        var updatedAt: String?
+        var scannedAt: String?
+        var agentsRunning: Int?
+        var agents: [Agent]?
+    }
+
+    struct Agent: Codable, Equatable, Hashable {
+        var title: String
+        var project: String?
     }
 }
 
@@ -88,6 +109,10 @@ extension DocketData {
                     Item(title: "Design crit: onboarding flow", tag: "work", due: inDays(3)),
                     Item(title: "Pay electricity bill", tag: "personal", due: inDays(4)),
                 ],
-                overdueCount: 0, openCount: 12))
+                overdueCount: 0, openCount: 12, weekCount: 5, waitingCount: 3, nodateCount: 4,
+                nextDeadline: Item(title: "Thesis committee report", tag: "phd", due: inDays(9))),
+            scan: Scan(updatedAt: stamp, scannedAt: stamp, agentsRunning: 2,
+                       agents: [Agent(title: "Inbox Docket tabs", project: "docket"),
+                                Agent(title: "MIC figures", project: "phd")]))
     }
 }

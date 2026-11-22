@@ -118,11 +118,13 @@ struct DocketCard: View {
     }
 
     private var large: some View {
-        // Rows left for the two lists: 8, or 7 when a Mac issue takes a line. "+N more" costs a row.
-        let rows = model.issues.isEmpty ? 8 : 7
-        let todayLimit = Self.limit(model.today.count, rows: 4, cap: 4)
+        // Rows left for the two lists: 8, less one for a Mac issue and one for the next deadline.
+        // "+N more" costs a row. Today gets at most 4 rows, or 3 when space is short.
+        let rows = 8 - (model.issues.isEmpty ? 0 : 1) - (model.nextDeadline == nil ? 0 : 1)
+        let todayCap = rows >= 7 ? 4 : 3
+        let todayLimit = Self.limit(model.today.count, rows: todayCap, cap: todayCap)
         let todayRows = max(1, todayLimit + (model.today.count > todayLimit ? 1 : 0))
-        let weekLimit = Self.limit(model.week.count, rows: rows - todayRows, cap: 5)
+        let weekLimit = min(Self.limit(model.weekCount, rows: rows - todayRows, cap: 5), model.week.count)
         return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center, spacing: 10) {
                 robot.frame(width: 100, height: 100)
@@ -137,7 +139,10 @@ struct DocketCard: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .accessibilityElement(children: .combine)
-                    StatusPill(model: model)
+                    HStack(spacing: 8) {
+                        StatusPill(model: model)
+                        if model.agentsRunning > 0 { AgentsLabel(model: model).fixedSize() }
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -145,13 +150,15 @@ struct DocketCard: View {
             .layoutPriority(1)
             .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Palette.band))
 
+            if let deadline = model.nextDeadline { DeadlineRow(item: deadline, model: model) }
             VStack(alignment: .leading, spacing: 4) {
-                SectionHeader(title: "Today", count: model.today.count)
+                SectionHeader(title: "Today", count: model.today.count, note: model.mailChecked)
                 ItemList(items: model.today, limit: todayLimit, empty: "Nothing due today", model: model)
             }
             VStack(alignment: .leading, spacing: 4) {
-                SectionHeader(title: "This week", count: model.week.count)
-                ItemList(items: model.week, limit: weekLimit, empty: "Clear week ahead", model: model)
+                SectionHeader(title: "This week", count: model.weekCount, note: model.laterLine)
+                ItemList(items: model.week, limit: weekLimit, empty: "Clear week ahead", model: model,
+                         total: model.weekCount)
             }
             if let issue = model.issues.first { IssueRow(text: issue) }
             Spacer(minLength: 0)
@@ -159,8 +166,15 @@ struct DocketCard: View {
                 BatteryRing(model: model)
                 DiskRing(model: model)
                 Spacer(minLength: 4)
-                Text("\(model.open) open").font(.caption2).foregroundStyle(Color.muted)
-                OverdueChip(count: model.overdue)
+                // The chip never truncates; "N open" drops when the two do not fit.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 14) {
+                        Text("\(model.open) open").font(.caption2).foregroundStyle(Color.muted)
+                        OverdueChip(count: model.overdue)
+                    }
+                    OverdueChip(count: model.overdue)
+                }
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -232,16 +246,69 @@ struct AgeBadge: View {
 struct SectionHeader: View {
     var title: String
     var count: Int
+    /// Quiet text on the right, such as "3 waiting · 4 no date".
+    var note: String? = nil
 
     var body: some View {
         HStack(spacing: 5) {
-            Text(title.uppercased())
-            if count > 0 { Text("\(count)").monospacedDigit() }
+            HStack(spacing: 5) {
+                Text(title.uppercased())
+                if count > 0 { Text("\(count)").monospacedDigit() }
+            }
+            .font(.caption2.weight(.bold))
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+            if let note {
+                Spacer(minLength: 4)
+                Text(note).font(.caption2.monospacedDigit()).lineLimit(1)
+            }
         }
-        .font(.caption2.weight(.bold))
         .foregroundStyle(Color.muted)
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// The next PhD or personal deadline, under the large widget's header.
+struct DeadlineRow: View {
+    var item: DocketData.Item
+    var model: DocketModel
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let due = DueFormat.format(item.due, now: model.now)
+        let late = due?.short.hasSuffix("late") == true && !model.isBriefStale
+        let accent = model.isBriefStale ? Color.muted : Palette.accent(scheme)
+        HStack(spacing: 6) {
+            Image(systemName: "flag.fill").font(.system(size: 9, weight: .semibold)).frame(width: 12)
+            Text("DEADLINE").font(.caption2.weight(.bold))
+            Text(item.title).font(.footnote.weight(.semibold)).foregroundStyle(Color.primary).lineLimit(1)
+            Spacer(minLength: 4)
+            if let due {
+                Text(due.short)
+                    .font(.caption2.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(late ? Palette.alert(scheme) : Color.muted)
+                    .lineLimit(1)
+            }
+        }
+        .foregroundStyle(accent)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(["Next deadline", item.title, due?.spoken].compactMap { $0 }.joined(separator: ", "))
+    }
+}
+
+/// "2 agents" beside the large widget's status pill, from the last inbox scan.
+struct AgentsLabel: View {
+    var model: DocketModel
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "sparkles")
+            Text(model.agentsRunning == 1 ? "1 agent" : "\(model.agentsRunning) agents").monospacedDigit()
+        }
+        .font(.caption2)
+        .foregroundStyle(Color.muted)
+        .lineLimit(1)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(model.agentsSpoken)
     }
 }
 
@@ -253,8 +320,11 @@ struct ItemList: View {
     var font: Font = .footnote
     /// The medium widget has no room for the "+N more" line.
     var showMore = true
+    /// The full count when `items` is cut short (the brief sends at most 10 for the week).
+    var total: Int? = nil
 
     var body: some View {
+        let hidden = max(total ?? 0, items.count) - min(limit, items.count)
         VStack(alignment: .leading, spacing: 3) {
             if items.isEmpty {
                 Text(empty).font(font).foregroundStyle(Color.muted)
@@ -262,8 +332,8 @@ struct ItemList: View {
             ForEach(Array(items.prefix(limit).enumerated()), id: \.offset) { _, item in
                 ItemRow(item: item, now: model.now, stale: model.isBriefStale, font: font)
             }
-            if showMore && items.count > limit {
-                Text("+\(items.count - limit) more").font(.caption2).foregroundStyle(Color.muted)
+            if showMore && hidden > 0 && !items.isEmpty {
+                Text("+\(hidden) more").font(.caption2).foregroundStyle(Color.muted)
             }
         }
     }

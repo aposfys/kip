@@ -11,7 +11,9 @@ enum Snapshot {
         let live = DocketStore.load()
         var data = live ?? .sample
         if data.brief == nil { data.brief = DocketData.sample.brief }  // before the first morning brief
-        let source = live == nil ? "sample data" : live?.brief == nil ? "live Mac data, sample brief" : "live data"
+        if data.scan == nil { data.scan = DocketData.sample.scan }  // before the first inbox scan write
+        let source = live == nil ? "sample data"
+            : live?.brief == nil || live?.scan == nil ? "live Mac data, sample brief and scan" : "live data"
         for scheme in [ColorScheme.light, .dark] {
             png(SnapshotSheet(data: data, source: source, scheme: scheme).environment(\.colorScheme, scheme),
                 to: dir.appendingPathComponent("docket-\(scheme == .dark ? "dark" : "light").png"))
@@ -48,7 +50,8 @@ enum Snapshot {
         }
     }
 
-    /// A crowded day for checking clipping: 6 today, 7 this week, a Mac issue, 2 overdue, a long one thing.
+    /// A crowded day for checking clipping: 6 today, 7 of 14 this week, a Mac issue, 2 overdue, a long one thing,
+    /// a long deadline, waiting and no-date counts and 3 agents.
     static func crowded(_ data: DocketData, now: Date) -> DocketData {
         var d = data
         let late = DocketModel.dayString(Calendar.current.date(byAdding: .day, value: -2, to: now)!)
@@ -59,6 +62,13 @@ enum Snapshot {
         d.brief?.today = (0..<6).map { DocketData.Item(title: titles[$0], tag: tags[$0], due: $0 == 0 ? late : "17:00") }
         d.brief?.week = (0..<7).map { DocketData.Item(title: titles[6 - $0], tag: tags[6 - $0], due: nil) }
         d.brief?.overdueCount = 2
+        d.brief?.weekCount = 14
+        d.brief?.waitingCount = 6
+        d.brief?.nodateCount = 11
+        d.brief?.nextDeadline = DocketData.Item(title: "Ethics amendment for the second MIC study, signed by all",
+                                                tag: "phd", due: DocketModel.dayString(now.addingTimeInterval(12 * 86400)))
+        d.scan?.scannedAt = DocketModel.iso.string(from: now)
+        d.scan?.agentsRunning = 3
         if d.mac == nil { d.mac = DocketData.sample.mac }
         d.mac?.issues = ["Disk almost full: 14 GB free"]
         return d
@@ -195,6 +205,15 @@ enum SelfTest {
         precondition(DocketCard.limit(3, rows: 4, cap: 4) == 3 && DocketCard.limit(6, rows: 4, cap: 4) == 3,
                      "row budget: today")
         precondition(DocketCard.limit(7, rows: 2, cap: 5) == 1 && DocketCard.limit(5, rows: 6, cap: 5) == 5, "row budget: week")
+        let extra = DocketStore.decode(Data(#"""
+            {"brief":{"week_count":14,"waiting_count":3,"nodate_count":0,"next_deadline":{"title":"Report","due":"2026-12-01"}},
+             "scan":{"scanned_at":"2026-11-22T14:05:00+02:00","agents_running":2,"agents":[{"title":"A"}]}}
+            """#.utf8))
+        precondition(extra?.brief?.nextDeadline?.title == "Report" && extra?.scan?.agentsRunning == 2, "new keys decode")
+        var m = DocketModel(data: extra, now: DocketModel.parse("2026-11-22T14:35:00+02:00")!)
+        precondition(m.laterLine == "3 waiting" && m.weekCount == 14 && m.agentsRunning == 2, "counts and agents")
+        m.now = m.now.addingTimeInterval(4 * 3600)
+        precondition(m.agentsRunning == 0, "old scan hides agents")
         let box = Robot.path("M10 20 L30 20 C30 30 30 40 10 40 Q0 30 10 20 Z").boundingRect
         precondition(box.minX >= 0 && box.minY == 20 && box.maxX == 30 && box.maxY == 40, "svg path parser")
         precondition(Robot.svg(.worried).contains("rotate(-5 58 76)"), "worried lean")
