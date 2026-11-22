@@ -6,9 +6,28 @@ import WidgetKit
 struct DocketApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
+    init() {
+        // A task's LaunchAgent starts the app with --run-task <id>: run it headless, notify, exit. No UI.
+        let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--run-task") {
+            exit(i + 1 < args.count ? TaskStore.runHeadless(args[i + 1]) : 64)
+        }
+    }
+
     var body: some Scene {
+        MenuBarExtra {
+            CompanionView()
+                .environment(CompanionStore.shared)
+                .onAppear { CompanionStore.shared.reload() }
+        } label: {
+            MenuBarLabel(store: CompanionStore.shared)
+        }
+        .menuBarExtraStyle(.window)
+
+        // The widget preview, opened from the companion's settings menu.
         Window("Docket", id: "main") { ContentView() }
             .windowResizability(.contentSize)
+            .defaultLaunchBehavior(.suppressed)
     }
 }
 
@@ -28,6 +47,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Snapshot.writeSVGs(to: URL(fileURLWithPath: args[i + 1]))
             exit(0)
         }
+        if let i = args.firstIndex(of: "--companion-shot"), i + 1 < args.count {
+            Snapshot.companion(to: URL(fileURLWithPath: args[i + 1]))
+            exit(0)
+        }
+        CompanionStore.shared.start()
     }
 
     /// shortcut: if macOS hands the widget's tap URL to this app instead of the browser,
@@ -36,7 +60,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         for url in urls where url.scheme == "https" { NSWorkspace.shared.open(url) }
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    /// Docket lives in the menu bar, so closing the preview window keeps it running.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 }
 
 struct ContentView: View {

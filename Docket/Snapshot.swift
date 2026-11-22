@@ -4,6 +4,7 @@ import SwiftUI
 /// `Docket --snapshot <dir>` writes docket-light.png and docket-dark.png (every mood, the stale
 /// state and a crowded day, in all three sizes, from the real data file) and robot-moods.png.
 /// `Docket --svg <dir>` writes the robot's master SVGs (Design/robot in the repo).
+/// `Docket --companion-shot <dir>` writes the menu-bar popover's panes with sample content.
 @MainActor
 enum Snapshot {
     static func write(to dir: URL) {
@@ -34,6 +35,81 @@ enum Snapshot {
             } catch {
                 FileHandle.standardError.write(Data("svg: \(error.localizedDescription)\n".utf8))
             }
+        }
+    }
+
+    /// Through a real window, because ImageRenderer leaves text fields and pickers blank.
+    static func companion(to dir: URL) {
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let now = Date.now
+        func store(_ tab: CompanionTab) -> CompanionStore {
+            let s = CompanionStore()
+            if s.data?.brief == nil { s.data = .sample }
+            s.tab = tab
+            return s
+        }
+        let today = store(.today)
+        today.actionTitle = "Disk preview"
+        today.actionResult = RunResult(ok: true, text: """
+            ➤ User caches · 2.1 GB
+            ➤ Xcode DerivedData · 6.4 GB
+            ➤ Homebrew old versions · 830 MB
+            Potential space: 9.3 GB (dry run, nothing removed)
+            """)
+        let ask = store(.ask)
+        ask.question = "What should I do first this afternoon?"
+        ask.answer = RunResult(ok: true, text: """
+            Start with the PhD methods draft: it is due tomorrow and nothing else today is as close. \
+            After that, reply to the two waiting emails. Your Mac is fine, with 120 GB free.
+            """)
+        let tasks = store(.tasks)
+        tasks.tasks = [
+            DocketTask(id: "0a1b2c3d", prompt: "Search the web for new papers on antimicrobial peptides and tell me the top 3",
+                       engine: .agy, schedule: Schedule(kind: .weekly, weekdays: [1], hour: 9),
+                       lastRun: now.addingTimeInterval(-26 * 3600), lastOK: true,
+                       lastResult: "3 new papers: a cyclic AMP screen in Nature Comms, a review of membrane models, and a dataset."),
+            DocketTask(id: "4e5f6a7b", prompt: "Tell me what is overdue and what is due tomorrow", engine: .claude,
+                       schedule: Schedule(kind: .weekly, weekdays: [1, 2, 3, 4, 5], hour: 18),
+                       lastRun: now.addingTimeInterval(-20 * 3600), lastOK: false,
+                       lastResult: "Not logged in. Run claude in a terminal and sign in with /login."),
+            DocketTask(id: "8c9d0e1f", prompt: "Check free disk space", engine: .claude,
+                       schedule: Schedule(kind: .daily, hour: 8), paused: true),
+        ]
+        let editor = store(.ask)
+        editor.question = "every Monday 9:00 check arXiv for AMP papers and tell me"
+        if let parsed = TaskParser.parse(editor.question) {
+            editor.draft = TaskDraft(task: DocketTask(id: "2a3b4c5d", prompt: parsed.prompt, engine: .agy, schedule: parsed.schedule),
+                                     isNew: true, askText: editor.question)
+        }
+        for (name, s, dark) in [("today", today, false), ("today-dark", today, true), ("ask", ask, false),
+                                ("tasks", tasks, false), ("task-editor", editor, false)] {
+            window(CompanionView().environment(s), dark: dark, to: dir.appendingPathComponent("companion-\(name).png"))
+        }
+        for mood in Mood.allCases {
+            if let tiff = MenuIcon.image(mood).tiffRepresentation, let rep = NSBitmapImageRep(data: tiff),
+               let png = rep.representation(using: .png, properties: [:]) {
+                try? png.write(to: dir.appendingPathComponent("menubar-\(mood.rawValue).png"))
+            }
+        }
+    }
+
+    private static func window(_ view: some View, dark: Bool, to url: URL) {
+        let host = NSHostingView(rootView: view.background(dark ? Color(white: 0.17) : Color(white: 0.95)))
+        host.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+        host.frame = NSRect(origin: .zero, size: host.fittingSize)
+        let win = NSWindow(contentRect: host.frame, styleMask: .borderless, backing: .buffered, defer: false)
+        win.appearance = host.appearance
+        win.contentView = host
+        host.layoutSubtreeIfNeeded()
+        RunLoop.current.run(until: .now.addingTimeInterval(0.3))
+        guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { return }
+        host.cacheDisplay(in: host.bounds, to: rep)
+        guard let png = rep.representation(using: .png, properties: [:]) else { return }
+        do {
+            try png.write(to: url)
+            print(url.path)
+        } catch {
+            FileHandle.standardError.write(Data("snapshot: \(error.localizedDescription)\n".utf8))
         }
     }
 
@@ -218,6 +294,81 @@ enum SelfTest {
         precondition(box.minX >= 0 && box.minY == 20 && box.maxX == 30 && box.maxY == 40, "svg path parser")
         precondition(Robot.svg(.worried).contains("rotate(-5 58 76)"), "worried lean")
         precondition(!Robot.svg(.happy, glyph: true).contains("#008BE5"), "glyph is one colour")
+        companion(noon: noon, at: at)
         print("selftest ok")
+    }
+
+    /// The companion's parser, schedules, launchd plist, id checks, alert dedupe and read-only flags.
+    static func companion(noon: Date, at: (Int) -> Date) {
+        func parsed(_ text: String) -> (kind: Schedule.Kind, days: [Int], day: Int, hour: Int, minute: Int, prompt: String)? {
+            TaskParser.parse(text).map { ($0.schedule.kind, $0.schedule.weekdays, $0.schedule.monthDay,
+                                          $0.schedule.hour, $0.schedule.minute, $0.prompt) }
+        }
+        let monday = parsed("every Monday 9:00 check X and tell me")
+        precondition(monday?.kind == .weekly && monday?.days == [1] && monday?.hour == 9 && monday?.minute == 0
+                     && monday?.prompt == "check X and tell me", "parse: every Monday 9:00")
+        let weekday = parsed("every weekday at 8:30am summarise my overdue items")
+        precondition(weekday?.days == [1, 2, 3, 4, 5] && weekday?.hour == 8 && weekday?.minute == 30
+                     && weekday?.prompt == "summarise my overdue items", "parse: weekday 8:30am")
+        let daily = parsed("every day at 6pm tell me what is due tomorrow")
+        precondition(daily?.kind == .daily && daily?.hour == 18 && daily?.prompt == "tell me what is due tomorrow", "parse: 6pm")
+        let hourly = parsed("every hour check the disk")
+        precondition(hourly?.kind == .hourly && hourly?.prompt == "check the disk", "parse: hourly")
+        let two = parsed("every mon and thu at 18:00 list open PhD tasks")
+        precondition(two?.days == [1, 4] && two?.hour == 18 && two?.prompt == "list open PhD tasks", "parse: two days")
+        let monthly = parsed("every month on the 3rd at 10 send me a recap")
+        precondition(monthly?.kind == .monthly && monthly?.day == 3 && monthly?.hour == 10
+                     && monthly?.prompt == "send me a recap", "parse: monthly")
+        precondition(parsed("every evening at 7 remind me to stretch")?.hour == 19, "parse: evening at 7 is 19:00")
+        precondition(parsed("every week on friday check 2 repos")?.days == [5], "parse: week on friday")
+        precondition(parsed("every friday at 9 check 3 papers")?.hour == 9, "parse: later number stays in the prompt")
+        precondition(parsed("what is due today") == nil && parsed("every Monday") == nil, "parse: not a task")
+
+        let weekly = Schedule(kind: .weekly, weekdays: [5, 1], hour: 9)
+        precondition(weekly.calendarIntervals == [["Weekday": 1, "Hour": 9, "Minute": 0], ["Weekday": 5, "Hour": 9, "Minute": 0]],
+                     "intervals: weekly")
+        precondition(Schedule(kind: .hourly, minute: 15).calendarIntervals == [["Minute": 15]], "intervals: hourly")
+        precondition(weekly.summary == "Mondays, Fridays at 09:00" && Schedule(kind: .weekly, weekdays: [1, 2, 3, 4, 5]).summary
+                     == "Weekdays at 09:00", "summary")
+        let sunday = Schedule(kind: .weekly, weekdays: [7], hour: 9).next(after: noon)
+        precondition(sunday.map { Calendar.current.component(.weekday, from: $0) } == 1, "next: Sunday")
+        precondition(!Schedule(kind: .weekly, weekdays: []).isValid, "weekly needs a day")
+
+        let task = DocketTask(id: "0a1b2c3d", prompt: "p", engine: .claude, schedule: weekly)
+        let plist = TaskStore.plist(for: task, executable: "/Applications/Docket.app/Contents/MacOS/Docket")
+        precondition(plist["Label"] as? String == "local.docket-task-0a1b2c3d", "plist label")
+        precondition(plist["ProgramArguments"] as? [String] == ["/Applications/Docket.app/Contents/MacOS/Docket", "--run-task", "0a1b2c3d"],
+                     "plist arguments")
+        precondition((plist["StartCalendarInterval"] as? [[String: Int]])?.count == 2, "plist intervals")
+        precondition((try? PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)) != nil, "plist serialises")
+
+        precondition(DocketTask.isValidID(DocketTask.newID()), "new id is valid")
+        precondition(!DocketTask.isValidID("../x") && !DocketTask.isValidID("ABCDEF12") && !DocketTask.isValidID("٠١٢٣٤٥٦٧"), "bad ids")
+        precondition(TaskStore.load("../../etc") == nil, "load refuses paths")
+
+        let suite = "docket-selftest"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        defer { defaults.removePersistentDomain(forName: suite) }
+        var a = DocketData.sample
+        a.brief?.date = DocketModel.dayString(noon)
+        a.brief?.overdueCount = 2
+        func alert(_ now: Date) -> String? { Alerts.check(DocketModel(data: a, now: now), defaults: defaults) }
+        precondition(alert(noon)?.hasPrefix("2 tasks are overdue.") == true, "alert: posts")
+        precondition(alert(noon.addingTimeInterval(60)) == nil, "alert: dedupes")
+        a.brief?.overdueCount = 3
+        precondition(alert(at(23)) == nil, "alert: quiet at night")
+        precondition(alert(noon) != nil, "alert: new count posts")
+        a.brief?.overdueCount = 0
+        precondition(alert(noon) == nil, "alert: nothing overdue")
+        a.brief?.overdueCount = 3
+        precondition(alert(noon) != nil, "alert: re-arms after clearing")
+
+        precondition(Engine.guess("search the web for new AMP papers") == .agy && Engine.guess("what is due today") == .claude,
+                     "engine guess")
+        let args = Runner.claudeArgs()
+        precondition(args.contains("--safe-mode") && args.contains("Read,Grep,Glob") && args.contains("sonnet"), "claude args")
+        precondition(!args.joined(separator: " ").contains("Bash") && !args.contains { $0.contains("Edit") || $0.contains("Write") },
+                     "claude is read-only")
     }
 }

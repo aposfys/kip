@@ -8,6 +8,18 @@ A macOS desktop widget that shows the daily brief and how the Mac is doing, with
 
 The robot has four moods, and each one changes its shape, so it reads in grayscale too. Happy has dot eyes and a smile. Busy has half-lid eyes, an open mouth and a halo. Worried has X eyes, a wavy mouth and sparks, and leans 5°. Sleepy has closed eyes and a Zzz. Sleepy (22:00–07:00) wins over the rest. Next comes worried (overdue items or a Mac issue), then busy (3+ items today), and happy otherwise. A tap opens Inbox Docket in the browser. The widget makes no network calls. It reads one local JSON file and refreshes every 20 minutes. It also redraws at 07:00 and 22:00, so the mood changes on time. Each card shows how long ago the brief was updated. After 26 hours it shows a gentle stale state: the robot turns grey. The robot moves gently in the app window only. The widgets stay still.
 
+## Menu-bar companion
+
+The app lives in the menu bar as the robot in its current mood. A click opens a popover with three tabs.
+
+- **Today:** Mac health and today's brief from the same JSON file, plus four actions. Run brief now asks Claude for a short brief from the task list. Health check runs `pc-health.sh` and refreshes the numbers. Disk preview runs `mo clean --dry-run`, which removes nothing. Open Inbox Docket opens the artifact.
+- **Ask:** one question, one answer. Claude runs as `claude -p --model sonnet --max-turns 6` with only Read, Grep and Glob, in safe mode, with docket.json as context. Web or bulk questions go to agy through `~/.claude/skills/agy-delegate/agy-run.sh` in plan mode. Docket picks the engine from the wording, and you can change it.
+- **Tasks:** recurring prompts. Type "every Monday 9:00 check X and tell me" and Docket shows the parsed schedule, prompt and engine to confirm. Each saved task is a LaunchAgent at `~/Library/LaunchAgents/local.docket-task-<id>.plist` that runs the same read-only one-shot, posts the answer as a notification and appends it to `~/.claude/docket/tasks/<id>.log`. Tasks can be paused, edited, deleted or run now. They run even when Docket is closed.
+
+When something is overdue the robot turns worried and Docket posts one notification, once per overdue count per day, between 07:00 and 22:00. Mac issues change the mood too, but `pc-health.sh --alert` already notifies about them, so Docket only adds the first issue to its overdue notification. Docket starts no Claude runs on its own. Only the tasks you create run on a schedule.
+
+Voice is off by default. When you turn it on in the gear menu, Ask gets a mic button that uses on-device speech recognition only, and answers are read out by the Mac's own voice. Open at login is in the same menu.
+
 ## Build and install
 
 Needs Xcode 26 or later. The only dependencies are Apple frameworks.
@@ -78,6 +90,9 @@ Set `DOCKET_JSON` to write to another file, for example in tests.
 python3 scripts/test_docket_widget_write.py
 ~/Applications/Docket.app/Contents/MacOS/Docket --selftest
 ~/Applications/Docket.app/Contents/MacOS/Docket --snapshot build/snap
+~/Applications/Docket.app/Contents/MacOS/Docket --companion-shot build/snap-companion
 ```
 
 `--selftest` checks the mood rules, the stale cut-off, the 07:00/22:00 boundaries, the due labels, the large widget's row budget, the new brief and scan keys, the 3-hour agents cut-off and the robot's path parser. `--snapshot` writes `docket-light.png`, `docket-dark.png` and `robot-moods.png` to the folder you give it. The widget images show every mood, the stale state and a crowded day in all three sizes, drawn from the real data file. The mood sheet shows every mood at 32, 44, 64 and 120 pt, in colour and in grayscale, plus the menu-bar glyphs.
+
+`--selftest` also checks the task parser, schedules and their LaunchAgent plists, task ids, the overdue alert's dedupe and quiet hours, the engine guess, and that headless Claude gets read-only tools. `--companion-shot` writes the popover's tabs, the task editor and the menu-bar icon for each mood.
