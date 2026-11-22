@@ -91,16 +91,6 @@ enum MenuIcon {
     }
 }
 
-struct MenuBarLabel: View {
-    var store: CompanionStore
-
-    var body: some View {
-        let model = store.model
-        Image(nsImage: MenuIcon.image(model.mood, stale: model.isBriefStale))
-            .accessibilityLabel(model.robotLabel)
-    }
-}
-
 // MARK: - Store
 
 enum CompanionTab: String, CaseIterable, Identifiable {

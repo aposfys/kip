@@ -15,15 +15,7 @@ struct DocketApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra {
-            CompanionView()
-                .environment(CompanionStore.shared)
-                .onAppear { CompanionStore.shared.reload() }
-        } label: {
-            MenuBarLabel(store: CompanionStore.shared)
-        }
-        .menuBarExtraStyle(.window)
-
+        // The menu-bar item is an AppKit status item (StatusItem.swift), set up by the delegate.
         // The widget preview, opened from the companion's settings menu.
         Window("kip", id: "main") { ContentView() }
             .windowResizability(.contentSize)
@@ -33,6 +25,8 @@ struct DocketApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var statusItem: StatusItemController?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         let args = CommandLine.arguments
         if args.contains("--selftest") {
@@ -52,6 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             exit(0)
         }
         CompanionStore.shared.start()
+        statusItem = StatusItemController(store: CompanionStore.shared)
     }
 
     /// shortcut: if macOS hands the widget's tap URL to this app instead of the browser,

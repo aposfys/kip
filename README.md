@@ -10,7 +10,7 @@ kip is a long, low slab drawn in coloured pencil on a paper card, following the 
 
 ## Menu-bar companion
 
-The app lives in the menu bar as a small colour kip in its current mood. If the menu bar is full, macOS may hide it behind the `<<` overflow button. Click that button, or allow kip under Menu Bar in System Settings. A click opens a popover with three tabs.
+The app lives in the menu bar as a small colour kip in its current mood. It is an AppKit status item with a saved position (autosave name `kip`). On first launch it sits just left of the system items, so it stays visible on a full menu bar. ⌘-drag it to move it, and macOS keeps the new place. A click opens a popover with three tabs.
 
 - **Today:** Mac health and today's brief from the same JSON file, plus four actions. Run brief now asks Claude for a short brief from the task list. Health check runs `pc-health.sh` and refreshes the numbers. Disk preview runs `mo clean --dry-run`, which removes nothing. Open Inbox Docket opens the artifact.
 - **Ask:** one question, one answer. Claude runs as `claude -p --model sonnet --max-turns 6` with only Read, Grep and Glob, in safe mode, with docket.json as context. Web or bulk questions go to agy through `~/.claude/skills/agy-delegate/agy-run.sh` in plan mode. kip picks the engine from the wording, and you can change it.
@@ -26,7 +26,7 @@ Needs Xcode 26 or later. The only dependencies are Apple frameworks.
 
 ```bash
 xcodebuild -project Docket.xcodeproj -scheme Docket -configuration Release -derivedDataPath build/dd build
-pkill -x kip; rm -rf ~/Applications/kip.app && cp -R build/dd/Build/Products/Release/kip.app ~/Applications/
+pkill -x kip; pkill -x DocketWidgetExtension; rm -rf ~/Applications/kip.app && cp -R build/dd/Build/Products/Release/kip.app ~/Applications/
 open ~/Applications/kip.app
 ```
 
@@ -95,4 +95,4 @@ python3 scripts/test_docket_widget_write.py
 
 `--selftest` checks the mood rules, the stale cut-off, the 07:00/22:00 boundaries, the due labels, the large widget's row budget, the new brief and scan keys, the 3-hour agents cut-off, the path parser, the hand-traced slab, the SVG pencil and hatching, blush on every look but stale, the colour menu-bar icon, that worried jolts up with a red ball, and that busy lifts its front while its tail stays on the ground. `--snapshot` writes `docket-light.png`, `docket-dark.png` and `robot-moods.png` to the folder you give it. The widget images show every mood, the stale state and a crowded day in all three sizes, drawn from the real data file. The mood sheet shows every mood and the stale state at 32, 44, 64 and 120 pt, on light and dark cards and in grayscale, plus the menu-bar icons on light and dark bars.
 
-`--selftest` also checks the task parser, schedules and their LaunchAgent plists, task ids, the overdue alert's dedupe and quiet hours, the engine guess, and that headless Claude gets read-only tools. `--companion-shot` writes the popover's tabs, the task editor and the menu-bar icon for each mood.
+`--selftest` also checks the task parser, schedules and their LaunchAgent plists, task ids, the overdue alert's dedupe and quiet hours, the engine guess, that headless Claude gets read-only tools, the menu-bar item's first-launch position, and that a saved position is kept. `--companion-shot` writes the popover's tabs, the task editor and the menu-bar icon for each mood.

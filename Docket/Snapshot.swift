@@ -313,6 +313,17 @@ enum SelfTest {
                      "blush on every mood but stale")
         let lifted = Robot.outline(Robot.parts(.busy)[4]).cgPath.boundingBoxOfPath, flat = Robot.outline(Robot.parts(.calm)[4]).cgPath.boundingBoxOfPath
         precondition(lifted.minY < flat.minY - 10 && abs(lifted.maxY - flat.maxY) < 3, "busy lifts its front, tail stays down")
+        let suite = "kip-selftest-\(ProcessInfo.processInfo.processIdentifier)"
+        if let defaults = UserDefaults(suiteName: suite) {
+            let key = "NSStatusItem Preferred Position kip"
+            StatusItemController.seedPosition(in: defaults)
+            precondition(defaults.double(forKey: key) == 230 && defaults.bool(forKey: "NSStatusItem Visible kip"),
+                         "status item: first launch seeds a visible position")
+            defaults.set(512.0, forKey: key)
+            StatusItemController.seedPosition(in: defaults)
+            precondition(defaults.double(forKey: key) == 512, "status item: a saved position is kept")
+            defaults.removePersistentDomain(forName: suite)
+        }
         companion(noon: noon, at: at)
         print("selftest ok")
     }
