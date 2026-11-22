@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="none">
+<title>Docket robot, busy</title>
+<!-- Generated from Shared/Robot.swift by the app's svg export. Edit the Swift, not this file.
+     Palette: blue #008BE5, navy #004D80, coral #FD5C3F, face #002E4D, highlight #FFFFFF,
+     sleepy body #0072BD / #003D66, stale greys #8E99A3 #5E6A75 #A9B2BA #2F3A44. -->
+<path d="M22 90 C12 95 4 89 6 80 C8 72 19 71 20 78 C21 86 9 88 6 79 C3.5 71 7 61 13 55" stroke="#008BE5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="31" y="49" width="64" height="56" rx="20" fill="#004D80"/>
+<rect x="22" y="46" width="64" height="56" rx="20" fill="#008BE5"/>
+<path d="M54 46 C50 37 52 28 57 23" stroke="#004D80" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="58" cy="18" r="12.5" stroke="#FD5C3F" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+<circle cx="58" cy="18" r="7.5" fill="#FD5C3F"/>
+<circle cx="31" cy="82" r="4" fill="#FD5C3F" opacity="0.85"/>
+<circle cx="77" cy="82" r="4" fill="#FD5C3F" opacity="0.85"/>
+<path d="M36.0 70 L48.0 70 C48.0 73.3 45.3 76 42.0 76 C38.7 76 36.0 73.3 36.0 70 Z" fill="#002E4D"/>
+<path d="M60.0 70 L72.0 70 C72.0 73.3 69.3 76 66.0 76 C62.7 76 60.0 73.3 60.0 70 Z" fill="#002E4D"/>
+<path d="M48.5 81 L59.5 81 C59.5 85 57.5 88 54 88 C50.5 88 48.5 85 48.5 81 Z" fill="#002E4D"/>
+<path d="M100 64 L112 64" stroke="#008BE5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
+<path d="M103 76 L112 76" stroke="#008BE5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
+</svg>

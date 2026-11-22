@@ -24,6 +24,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Snapshot.write(to: URL(fileURLWithPath: args[i + 1]))
             exit(0)
         }
+        if let i = args.firstIndex(of: "--svg"), i + 1 < args.count {
+            Snapshot.writeSVGs(to: URL(fileURLWithPath: args[i + 1]))
+            exit(0)
+        }
     }
 
     /// shortcut: if macOS hands the widget's tap URL to this app instead of the browser,
@@ -84,6 +88,7 @@ struct ContentView: View {
         }
         .padding(24)
         .fixedSize()
+        .environment(\.robotAnimates, true)
     }
 
     private func sourceLine(_ model: DocketModel) -> String {

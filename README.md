@@ -1,12 +1,12 @@
 # Docket
 
-A macOS desktop widget that shows the daily brief and how the Mac is doing, with Aori the octopus.
+A macOS desktop widget that shows the daily brief and how the Mac is doing, with the Docket robot.
 
-- **Small:** Aori and the one thing for today.
-- **Medium:** adds the top 3 for today, plus battery-health and disk rings.
-- **Large:** adds the week and the overdue count.
+- **Small:** the robot and the one thing for today.
+- **Medium:** adds the top 3 for today, plus compact battery-health and disk rings.
+- **Large:** adds the week, any Mac issue and the overdue count.
 
-Aori has four moods. Sleepy (22:00–07:00) wins over the rest. Next comes worried (overdue items or a Mac issue), then busy (3+ items today), and happy otherwise. A tap opens Inbox Docket in the browser. The widget makes no network calls. It reads one local JSON file and refreshes every 20 minutes. It also redraws at 07:00 and 22:00, so the mood changes on time. Each card shows how long ago the brief was updated. After 26 hours it shows a gentle stale state.
+The robot has four moods, and each one changes its shape, so it reads in grayscale too. Happy has dot eyes and a smile. Busy has half-lid eyes, an open mouth and a halo. Worried has X eyes, a wavy mouth and sparks, and leans 5°. Sleepy has closed eyes and a Zzz. Sleepy (22:00–07:00) wins over the rest. Next comes worried (overdue items or a Mac issue), then busy (3+ items today), and happy otherwise. A tap opens Inbox Docket in the browser. The widget makes no network calls. It reads one local JSON file and refreshes every 20 minutes. It also redraws at 07:00 and 22:00, so the mood changes on time. Each card shows how long ago the brief was updated. After 26 hours it shows a gentle stale state: the robot turns grey. The robot moves gently in the app window only. The widgets stay still.
 
 ## Build and install
 
@@ -57,6 +57,14 @@ echo '{"date":"2026-11-22","one_thing":"Send the chapter draft","today":[],"week
 
 Set `DOCKET_JSON` to write to another file, for example in tests.
 
+## Robot artwork
+
+`Design/robot/` holds the master SVGs: `happy`, `busy`, `worried`, `sleepy`, `stale` (happy, greyed out) and an 18 pt one-colour menu-bar template for each mood (`menubar-*.svg`). They are generated from `Shared/Robot.swift`, which also draws the robot in SwiftUI, so the two never drift apart. To change the robot, edit the Swift, rebuild and run:
+
+```bash
+~/Applications/Docket.app/Contents/MacOS/Docket --svg Design/robot
+```
+
 ## Checks
 
 ```bash
@@ -65,4 +73,4 @@ python3 scripts/test_docket_widget_write.py
 ~/Applications/Docket.app/Contents/MacOS/Docket --snapshot build/snap
 ```
 
-`--selftest` checks the mood rules, the stale cut-off, the 07:00/22:00 boundaries and the due labels. `--snapshot` writes `docket-light.png` and `docket-dark.png` to the folder you give it. Each image shows every mood and the stale state in all three sizes, drawn from the real data file.
+`--selftest` checks the mood rules, the stale cut-off, the 07:00/22:00 boundaries, the due labels, the large widget's row budget and the robot's path parser. `--snapshot` writes `docket-light.png`, `docket-dark.png` and `robot-moods.png` to the folder you give it. The widget images show every mood, the stale state and a crowded day in all three sizes, drawn from the real data file. The mood sheet shows every mood at 32, 44, 64 and 120 pt, in colour and in grayscale, plus the menu-bar glyphs.

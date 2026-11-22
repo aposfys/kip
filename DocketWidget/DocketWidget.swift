@@ -7,7 +7,7 @@ struct DocketEntry: TimelineEntry {
 }
 
 /// Reads the local JSON only; no network. Refreshes every 20 minutes, plus an extra
-/// entry at 07:00/22:00 so the octopus wakes up and falls asleep on time.
+/// entry at 07:00/22:00 so the robot wakes up and falls asleep on time.
 struct DocketProvider: TimelineProvider {
     func placeholder(in context: Context) -> DocketEntry {
         DocketEntry(date: .now, data: .sample)
@@ -56,7 +56,7 @@ struct DocketWidget: Widget {
             DocketWidgetView(entry: entry)
         }
         .configurationDisplayName("Docket")
-        .description("Today's one thing, your tasks and how your Mac is doing, with Aori.")
+        .description("Today's one thing, your tasks and how your Mac is doing, with the Docket robot.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="14.4" height="18" viewBox="20 6 80 100" fill="none">
+<title>Docket robot, menu-bar template, busy</title>
+<!-- Generated from Shared/Robot.swift by the app's svg export. Edit the Swift, not this file.
+     Template image: one colour (black) plus a see-through face. macOS tints it for the menu bar. -->
+<defs><mask id="face" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+<rect width="120" height="120" fill="#FFFFFF"/>
+<path d="M36.0 70 L48.0 70 C48.0 73.3 45.3 76 42.0 76 C38.7 76 36.0 73.3 36.0 70 Z" fill="#000000"/>
+<path d="M60.0 70 L72.0 70 C72.0 73.3 69.3 76 66.0 76 C62.7 76 60.0 73.3 60.0 70 Z" fill="#000000"/>
+<path d="M48.5 81 L59.5 81 C59.5 85 57.5 88 54 88 C50.5 88 48.5 85 48.5 81 Z" fill="#000000"/>
+</mask></defs>
+<g mask="url(#face)">
+<rect x="31" y="49" width="64" height="56" rx="20" fill="#000000" opacity="0.5"/>
+<rect x="22" y="46" width="64" height="56" rx="20" fill="#000000"/>
+<path d="M54 46 C50 37 52 28 57 23" stroke="#000000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="58" cy="18" r="7.5" fill="#000000"/>
+</g>
+</svg>

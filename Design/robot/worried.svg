@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="none">
+<title>Docket robot, worried</title>
+<!-- Generated from Shared/Robot.swift by the app's svg export. Edit the Swift, not this file.
+     Palette: blue #008BE5, navy #004D80, coral #FD5C3F, face #002E4D, highlight #FFFFFF,
+     sleepy body #0072BD / #003D66, stale greys #8E99A3 #5E6A75 #A9B2BA #2F3A44. -->
+<path d="M22 90 C12 95 4 89 6 80 C8 72 19 71 20 78 C21 86 9 88 6 79 C3.5 71 7 61 13 55" stroke="#008BE5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" transform="rotate(-5 58 76)"/>
+<rect x="31" y="49" width="64" height="56" rx="20" fill="#004D80" transform="rotate(-5 58 76)"/>
+<rect x="22" y="46" width="64" height="56" rx="20" fill="#008BE5" transform="rotate(-5 58 76)"/>
+<path d="M54 46 C50 37 52 28 57 23" stroke="#004D80" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" transform="rotate(-5 58 76)"/>
+<circle cx="58" cy="18" r="7.5" fill="#FD5C3F" transform="rotate(-5 58 76)"/>
+<path d="M37.0 65 L47.0 75 M47.0 65 L37.0 75" stroke="#002E4D" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" transform="rotate(-5 58 76)"/>
+<path d="M61.0 65 L71.0 75 M71.0 65 L61.0 75" stroke="#002E4D" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" transform="rotate(-5 58 76)"/>
+<path d="M44 84 Q49 79 54 84 Q59 89 64 84" stroke="#002E4D" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" transform="rotate(-5 58 76)"/>
+<path d="M98 42 L105 34" stroke="#FD5C3F" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+<path d="M101 63 L112 62" stroke="#FD5C3F" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+<path d="M98 86 L106 92" stroke="#FD5C3F" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+</svg>

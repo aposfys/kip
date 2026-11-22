@@ -64,7 +64,7 @@ struct DocketModel {
         }
     }
 
-    var octopusLabel: String { "Aori the octopus, \(mood.rawValue): \(moodLine)" }
+    var robotLabel: String { "Docket the robot, \(mood.rawValue): \(moodLine)" }
 
     var ageText: String {
         guard let d = briefUpdated else { return "No brief" }
@@ -83,7 +83,7 @@ struct DocketModel {
         return isBriefStale ? "Brief out of date, updated \(rel)" : "Brief updated \(rel)"
     }
 
-    /// The next 07:00 or 22:00, where the octopus wakes up or falls asleep.
+    /// The next 07:00 or 22:00, where the robot wakes up or falls asleep.
     static func nextBoundary(after date: Date, calendar: Calendar = .current) -> Date {
         [7, 22].compactMap {
             calendar.nextDate(after: date, matching: DateComponents(hour: $0, minute: 0), matchingPolicy: .nextTime)
