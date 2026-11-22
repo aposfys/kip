@@ -2,7 +2,7 @@ import AVFoundation
 import Speech
 
 /// Optional voice, off by default. Answers are spoken by the Mac's own synthesiser, and listening uses
-/// on-device recognition only: when the on-device model is missing, Docket says so and never falls back
+/// on-device recognition only: when the on-device model is missing, kip says so and never falls back
 /// to Apple's servers.
 @MainActor
 final class Speaker {
@@ -28,13 +28,13 @@ final class Listener: @unchecked Sendable {
         SFSpeechRecognizer.requestAuthorization { status in
             guard status == .authorized else {
                 return DispatchQueue.main.async {
-                    onEnd("Speech recognition is off for Docket. Turn it on in System Settings, Privacy & Security.")
+                    onEnd("Speech recognition is off for kip. Turn it on in System Settings, Privacy & Security.")
                 }
             }
             AVCaptureDevice.requestAccess(for: .audio) { granted in
                 DispatchQueue.main.async {
                     guard granted else {
-                        return onEnd("Microphone access is off for Docket. Turn it on in System Settings, Privacy & Security.")
+                        return onEnd("Microphone access is off for kip. Turn it on in System Settings, Privacy & Security.")
                     }
                     self.begin(onText: onText, onEnd: onEnd)
                 }
@@ -45,7 +45,7 @@ final class Listener: @unchecked Sendable {
     private func begin(onText: @escaping @Sendable (String) -> Void, onEnd: @escaping @Sendable (String?) -> Void) {
         guard let recognizer = SFSpeechRecognizer(locale: .current) ?? SFSpeechRecognizer(locale: Locale(identifier: "en-US")),
               recognizer.supportsOnDeviceRecognition else {
-            return onEnd("On-device speech is not available for this language, so Docket will not listen. Audio never leaves the Mac.")
+            return onEnd("On-device speech is not available for this language, so kip will not listen. Audio never leaves the Mac.")
         }
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.requiresOnDeviceRecognition = true

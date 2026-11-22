@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Docket the robot. One parts list drives the SwiftUI drawing, the master SVGs in
-/// Design/robot (`Docket --svg <dir>`) and the menu-bar glyph, so they cannot drift apart.
+/// kip the robot. One parts list drives the SwiftUI drawing, the master SVGs in
+/// Design/robot (`kip --svg <dir>`) and the menu-bar glyph, so they cannot drift apart.
 /// Design space is 120×120 with y pointing down, the same as the SVGs.
 enum Robot {
     /// Palette hex values, also written into every exported SVG.
@@ -220,7 +220,7 @@ enum Robot {
             """
         var out = """
         <svg xmlns="http://www.w3.org/2000/svg" \(size) viewBox="\(n(b.minX)) \(n(b.minY)) \(n(b.width)) \(n(b.height))" fill="none">
-        <title>Docket robot, \(name)</title>
+        <title>kip, \(name)</title>
         <!-- Generated from Shared/Robot.swift by the app's svg export. Edit the Swift, not this file.
              \(note) -->
 
@@ -288,7 +288,7 @@ struct RobotView: View {
         }
         .aspectRatio(1, contentMode: .fit)
         .accessibilityElement()
-        .accessibilityLabel(label ?? "Docket the robot, \(mood.label)")
+        .accessibilityLabel(label ?? "kip, \(mood.label)")
     }
 }
 
@@ -301,7 +301,7 @@ struct RobotGlyph: View {
         RobotParts(parts: Robot.parts(mood, glyph: true), box: Robot.glyphBox, tint: color)
             .aspectRatio(Robot.glyphBox.width / Robot.glyphBox.height, contentMode: .fit)
             .accessibilityElement()
-            .accessibilityLabel("Docket, \(mood.label)")
+            .accessibilityLabel("kip, \(mood.label)")
     }
 }
 

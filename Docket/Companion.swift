@@ -31,7 +31,7 @@ enum Notifier {
     }
 }
 
-/// Shows Docket's banners while the app itself is running, which for a menu-bar app is always.
+/// Shows kip's banners while the app itself is running, which for a menu-bar app is always.
 final class NotificationPresenter: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationPresenter()
 
@@ -84,7 +84,7 @@ enum MenuIcon {
             image = NSImage(systemSymbolName: "face.smiling", accessibilityDescription: nil) ?? NSImage()
         }
         image.isTemplate = true
-        image.accessibilityDescription = "Docket, \(mood.label)"
+        image.accessibilityDescription = "kip, \(mood.label)"
         cache[mood] = image
         return image
     }
@@ -171,7 +171,7 @@ final class CompanionStore {
         let list = TaskStore.all()
         if list != tasks { tasks = list }
         if let body = Alerts.check(model) {
-            Notifier.post(id: "docket-alert-\(Int(now.timeIntervalSince1970))", title: "Docket", body: body)
+            Notifier.post(id: "docket-alert-\(Int(now.timeIntervalSince1970))", title: "kip", body: body)
         }
     }
 
@@ -409,7 +409,7 @@ struct CompanionView: View {
         HStack(spacing: 10) {
             RobotView(mood: model.mood, stale: model.isBriefStale).frame(width: 44, height: 44)
             VStack(alignment: .leading, spacing: 1) {
-                Text("Docket").font(.headline)
+                Text("kip").font(.headline)
                 Text(model.moodLine).font(.callout).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()
@@ -423,7 +423,7 @@ struct CompanionView: View {
                 }
                 Button("Open Inbox Docket") { store.openInbox() }
                 Divider()
-                Button("Quit Docket") { NSApp.terminate(nil) }
+                Button("Quit kip") { NSApp.terminate(nil) }
             } label: {
                 Label("Settings", systemImage: "gearshape").labelStyle(.iconOnly)
             }
@@ -572,7 +572,7 @@ struct AskPane: View {
         @Bindable var store = store
         let empty = store.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         VStack(alignment: .leading, spacing: 8) {
-            TextField("Ask Docket, or set a task: “every Monday 9:00 check X and tell me”",
+            TextField("Ask kip, or set a task: “every Monday 9:00 check X and tell me”",
                       text: $store.question, axis: .vertical)
                 .lineLimit(2...5)
                 .textFieldStyle(.roundedBorder)
@@ -634,7 +634,7 @@ struct AskPane: View {
                     .font(.caption)
                 }
             }
-            Text("Read-only: Docket can read files but never changes, sends or deletes anything. "
+            Text("Read-only: kip can read files but never changes, sends or deletes anything. "
                  + "Each question is one short run.")
                 .font(.caption2).foregroundStyle(.secondary)
         }
@@ -666,7 +666,7 @@ struct TasksPane: View {
                 }
                 .frame(maxHeight: 380)
             }
-            Text("Tasks run on schedule even when Docket is closed: one read-only run each time, then a notification.")
+            Text("Tasks run on schedule even when kip is closed: one read-only run each time, then a notification.")
                 .font(.caption2).foregroundStyle(.secondary)
         }
     }
@@ -740,7 +740,7 @@ struct TaskEditor: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(draft.isNew ? (draft.askText == nil ? "New task" : "Save this as a task?") : "Edit task")
                 .font(.headline)
-            TextField("What should Docket check and tell you?", text: $task.prompt, axis: .vertical)
+            TextField("What should kip check and tell you?", text: $task.prompt, axis: .vertical)
                 .lineLimit(2...5)
                 .textFieldStyle(.roundedBorder)
             Picker("Repeat", selection: $task.schedule.kind) {

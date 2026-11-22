@@ -25,7 +25,7 @@ struct DocketApp: App {
         .menuBarExtraStyle(.window)
 
         // The widget preview, opened from the companion's settings menu.
-        Window("Docket", id: "main") { ContentView() }
+        Window("kip", id: "main") { ContentView() }
             .windowResizability(.contentSize)
             .defaultLaunchBehavior(.suppressed)
     }
@@ -60,7 +60,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         for url in urls where url.scheme == "https" { NSWorkspace.shared.open(url) }
     }
 
-    /// Docket lives in the menu bar, so closing the preview window keeps it running.
+    /// kip lives in the menu bar, so closing the preview window keeps it running.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 }
 
@@ -75,7 +75,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Docket").font(.largeTitle.bold())
+                    Text("kip").font(.largeTitle.bold())
                     Text(sourceLine(model)).font(.callout).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 24)
@@ -107,7 +107,7 @@ struct ContentView: View {
                 Text(status).font(.callout).foregroundStyle(.secondary)
             }
 
-            Text("Add it to your desktop: right-click the desktop, choose Edit Widgets, then search for Docket.")
+            Text("Add it to your desktop: right-click the desktop, choose Edit Widgets, then search for kip.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }

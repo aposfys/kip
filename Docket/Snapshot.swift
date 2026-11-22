@@ -1,10 +1,10 @@
 import AppKit
 import SwiftUI
 
-/// `Docket --snapshot <dir>` writes docket-light.png and docket-dark.png (every mood, the stale
+/// `kip --snapshot <dir>` writes docket-light.png and docket-dark.png (every mood, the stale
 /// state and a crowded day, in all three sizes, from the real data file) and robot-moods.png.
-/// `Docket --svg <dir>` writes the robot's master SVGs (Design/robot in the repo).
-/// `Docket --companion-shot <dir>` writes the menu-bar popover's panes with sample content.
+/// `kip --svg <dir>` writes the robot's master SVGs (Design/robot in the repo).
+/// `kip --companion-shot <dir>` writes the menu-bar popover's panes with sample content.
 @MainActor
 enum Snapshot {
     static func write(to dir: URL) {
@@ -163,7 +163,7 @@ struct SnapshotSheet: View {
             + [("Stale (seen 48h later)", DocketModel(data: data, now: now.addingTimeInterval(48 * 3600))),
                ("Crowded day (clipping check)", DocketModel(data: Snapshot.crowded(data, now: now), now: now))]
         VStack(alignment: .leading, spacing: 18) {
-            Text("Docket, \(source), \(scheme == .dark ? "dark" : "light")")
+            Text("kip, \(source), \(scheme == .dark ? "dark" : "light")")
                 .font(.title3.bold())
             ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                 VStack(alignment: .leading, spacing: 8) {
@@ -186,7 +186,7 @@ struct MoodSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Text("Docket robot: moods at 32, 44, 64 and 120 pt").font(.title3.bold())
+            Text("kip: moods at 32, 44, 64 and 120 pt").font(.title3.bold())
             HStack(alignment: .top, spacing: 18) {
                 panel("Colour, light card", scheme: .light)
                 panel("Colour, dark card", scheme: .dark)
@@ -238,7 +238,7 @@ struct MoodSheet: View {
     }
 }
 
-/// `Docket --selftest`: the mood rules, stale cut-off, wake/sleep boundary and due labels.
+/// `kip --selftest`: the mood rules, stale cut-off, wake/sleep boundary and due labels.
 enum SelfTest {
     static func run() {
         let cal = Calendar.current
@@ -335,9 +335,9 @@ enum SelfTest {
         precondition(!Schedule(kind: .weekly, weekdays: []).isValid, "weekly needs a day")
 
         let task = DocketTask(id: "0a1b2c3d", prompt: "p", engine: .claude, schedule: weekly)
-        let plist = TaskStore.plist(for: task, executable: "/Applications/Docket.app/Contents/MacOS/Docket")
+        let plist = TaskStore.plist(for: task, executable: "/Applications/kip.app/Contents/MacOS/kip")
         precondition(plist["Label"] as? String == "local.docket-task-0a1b2c3d", "plist label")
-        precondition(plist["ProgramArguments"] as? [String] == ["/Applications/Docket.app/Contents/MacOS/Docket", "--run-task", "0a1b2c3d"],
+        precondition(plist["ProgramArguments"] as? [String] == ["/Applications/kip.app/Contents/MacOS/kip", "--run-task", "0a1b2c3d"],
                      "plist arguments")
         precondition((plist["StartCalendarInterval"] as? [[String: Int]])?.count == 2, "plist intervals")
         precondition((try? PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)) != nil, "plist serialises")

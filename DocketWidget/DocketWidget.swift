@@ -55,8 +55,8 @@ struct DocketWidget: Widget {
         StaticConfiguration(kind: "DocketWidget", provider: DocketProvider()) { entry in
             DocketWidgetView(entry: entry)
         }
-        .configurationDisplayName("Docket")
-        .description("Today's one thing, your tasks and how your Mac is doing, with the Docket robot.")
+        .configurationDisplayName("kip")
+        .description("Today's one thing, your tasks and how your Mac is doing, with kip.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }

@@ -104,7 +104,7 @@ struct DocketModel {
         }
     }
 
-    var robotLabel: String { "Docket the robot, \(mood.rawValue): \(moodLine)" }
+    var robotLabel: String { "kip, \(mood.rawValue): \(moodLine)" }
 
     var ageText: String {
         guard let d = briefUpdated else { return "No brief" }

@@ -190,7 +190,7 @@ enum TaskParser {
 }
 
 /// Tasks live as JSON in ~/.claude/docket/tasks/<id>.json with a <id>.log beside each. A LaunchAgent per
-/// active task runs `Docket --run-task <id>`; pausing removes the agent and keeps the JSON.
+/// active task runs `kip --run-task <id>`; pausing removes the agent and keeps the JSON.
 enum TaskStore {
     static let dir = Runner.docketDir.appendingPathComponent("tasks")
     static let agentsDir = Runner.home.appendingPathComponent("Library/LaunchAgents")
@@ -304,7 +304,7 @@ enum TaskStore {
         }
     }
 
-    /// `Docket --run-task <id>`: the LaunchAgent's entry point, and Run now's. Returns the exit code.
+    /// `kip --run-task <id>`: the LaunchAgent's entry point, and Run now's. Returns the exit code.
     static func runHeadless(_ id: String) -> Int32 {
         guard let task = load(id) else { return 2 }
         let started = Date.now

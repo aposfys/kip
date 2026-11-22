@@ -35,7 +35,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1C73AB38965AE6D23C72F032 /* Docket.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Docket.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1C73AB38965AE6D23C72F032 /* kip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = kip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A7A0DC4B768BFEBA89E72FBB /* DocketWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DocketWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -76,7 +76,7 @@
 		ECFC3AB550A84E496BD1C1BF /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1C73AB38965AE6D23C72F032 /* Docket.app */,
+				1C73AB38965AE6D23C72F032 /* kip.app */,
 				A7A0DC4B768BFEBA89E72FBB /* DocketWidgetExtension.appex */,
 			);
 			name = Products;
@@ -107,7 +107,7 @@
 			packageProductDependencies = (
 			);
 			productName = Docket;
-			productReference = 1C73AB38965AE6D23C72F032 /* Docket.app */;
+			productReference = 1C73AB38965AE6D23C72F032 /* kip.app */;
 			productType = "com.apple.product-type.application";
 		};
 		38F9321F0C9B4136BAC7BE47 /* DocketWidgetExtension */ = {
@@ -270,11 +270,11 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Docket;
+				INFOPLIST_KEY_CFBundleDisplayName = kip;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Docket listens only after you press the mic button in Ask, using on-device speech recognition.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Docket turns your spoken question into text on this Mac. Audio never leaves it.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "kip listens only after you press the mic button in Ask, using on-device speech recognition.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "kip turns your spoken question into text on this Mac. Audio never leaves it.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -282,7 +282,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aposfys.Docket;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = kip;
 			};
 			name = Debug;
 		};
@@ -295,11 +295,11 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Docket;
+				INFOPLIST_KEY_CFBundleDisplayName = kip;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Docket listens only after you press the mic button in Ask, using on-device speech recognition.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Docket turns your spoken question into text on this Mac. Audio never leaves it.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "kip listens only after you press the mic button in Ask, using on-device speech recognition.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "kip turns your spoken question into text on this Mac. Audio never leaves it.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -307,7 +307,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aposfys.Docket;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = kip;
 			};
 			name = Release;
 		};
@@ -320,7 +320,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/DocketWidget-Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Docket;
+				INFOPLIST_KEY_CFBundleDisplayName = kip;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -343,7 +343,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/DocketWidget-Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Docket;
+				INFOPLIST_KEY_CFBundleDisplayName = kip;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
