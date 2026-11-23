@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="27.43" height="18" viewBox="0 -2 64 42" fill="none">
 <title>kip, menu-bar icon, happy</title>
-<!-- Generated from Shared/Robot.swift by `kip --svg <dir>`. Edit the Swift, not this file.
+<!-- Generated from Shared/Robot.swift by the kip app (svg option, see README). Edit the Swift, not this file.
      Colours: body #FFC83D, back #FFE7A3, lines #6B4A00, ball #FF7A5C, blush #FF7A5C, eyes #FFFFFF. Menu-bar size: bold lines, no hatching or wobble. -->
 <rect x="3" y="22" width="54" height="16" rx="8" fill="#FFC83D"/>
 <rect x="3" y="22" width="54" height="16" rx="8" stroke="#6B4A00" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>

@@ -110,6 +110,18 @@ enum Robot {
         add(.path(front), ink.body, opacity: 0.9)
         add(.path(hatch(b)), ink.line, stroked: true, width: 1, opacity: 0.13, clip: .path(front))
         add(.path(hatch(b, gap: 5, shift: 2.2)), Ink.paper, stroked: true, width: 1.1, opacity: 0.32, clip: .path(front))
+        // Volume, lit from the top left: cross-hatching builds up along the underside and the tail
+        // end (two passes each, so the shade deepens toward the edge), and more paper shows along the
+        // top-left edge. The slab reads soft and rounded instead of flat.
+        for (band, gap) in [(CGRect(x: b.minX, y: b.minY + b.height * 0.55, width: b.width, height: b.height * 0.45), 3.0),
+                            (CGRect(x: b.minX, y: b.minY + b.height * 0.78, width: b.width, height: b.height * 0.22), 2.4),
+                            (CGRect(x: b.maxX - r * 1.3, y: b.minY, width: r * 1.3, height: b.height), 3.0),
+                            (CGRect(x: b.maxX - r * 0.6, y: b.minY, width: r * 0.6, height: b.height), 2.4)] {
+            add(.path(hatch(band, gap: gap, shift: 1, cross: true)), ink.line, stroked: true, width: 0.9, opacity: 0.14,
+                clip: .path(front))
+        }
+        let light = CGRect(x: b.minX + r * 0.5, y: b.minY + 1.2, width: b.width * 0.4, height: b.height * 0.22)
+        add(.path(hatch(light, gap: 2.2, shift: 0.6)), Ink.paper, stroked: true, width: 1.2, opacity: 0.5, clip: .path(front))
         pencil(.path(front), ink.line)
 
         // Antenna from the top middle: up, then hooked right to the ball. Straight up when happy.
@@ -121,6 +133,12 @@ enum Robot {
             ink.line, stroked: true, width: 2.2)
         if m == .busy {
             add(.circle(ball, radius: 9.5 + 1.2 * wave(1.2)), ink.ball, opacity: 0.3 + 0.12 * wave(1.2))
+            // A faint teal ring pair around the glowing ball, turning like the loading-ring eyes.
+            let spin = (phase ?? 0) * 90
+            add(.path(arc(ball, 8.4 + 0.6 * wave(1.2), from: -60 + spin, sweep: 290)), ink.body, stroked: true,
+                width: 1.5, opacity: 0.85)
+            add(.path(arc(ball, 12.8 + 0.9 * wave(1.2), from: 150 - spin * 0.6, sweep: 200)), ink.line, stroked: true,
+                width: 1.1, opacity: 0.3 + 0.15 * wave(1.2))
         }
         add(.circle(ball, radius: 4.6), ink.ball, opacity: m == .resting ? 0.6 : 1)
         pencil(.circle(ball, radius: 4.6), ink.line, width: 1.4)
@@ -201,6 +219,12 @@ enum Robot {
                 out.append(Part(geometry: .path("M\(n(bp.x + 9 * u.x)) \(n(bp.y + 9 * u.y)) L\(n(bp.x + 15 * u.x)) \(n(bp.y + 15 * u.y))"),
                                 color: Ink.alarm, stroked: true, width: 2.4, opacity: 0.7 + 0.3 * wave(0.3, Double(i) * 0.37)))
             }
+        case .busy:   // speed lines streaming off the ball, brightening with each pulse
+            for (i, (dy, len)) in [(-5.0, 9.0), (0, 13), (5, 7)].enumerated() {
+                let x0 = bp.x + 17 + CGFloat(i % 2) * 2
+                out.append(Part(geometry: .path("M\(n(x0)) \(n(bp.y + dy)) L\(n(x0 + len)) \(n(bp.y + dy))"), color: ink.line,
+                                stroked: true, width: 1.8, opacity: 0.35 + 0.3 * max(0, wave(1.2, Double(i) * 0.15))))
+            }
         default:
             break
         }
@@ -263,12 +287,17 @@ enum Robot {
             + " C\(n(b.minX)) \(n(b.minY + r - k)) \(n(l - k)) \(n(b.minY)) \(n(l)) \(n(b.minY)) Z"
     }
 
-    /// Diagonal pencil hatching across a rect; parts clip it to the body.
-    static func hatch(_ r: CGRect, gap: CGFloat = 4, shift: CGFloat = 0) -> String {
+    /// Diagonal pencil hatching kept inside a rect; parts clip it to the body. `cross` runs the
+    /// strokes the other way, for shading built up over the base layer.
+    static func hatch(_ r: CGRect, gap: CGFloat = 4, shift: CGFloat = 0, cross: Bool = false) -> String {
         var d = ""
         var x = r.minX - r.height + shift
         while x < r.maxX {
-            d += "M\(n(x)) \(n(r.maxY)) L\(n(x + r.height)) \(n(r.minY)) "
+            let xs = max(x, r.minX), xe = min(x + r.height, r.maxX)   // 45° stroke, cut at the rect's sides
+            if xs < xe {
+                let y0 = cross ? r.minY + (xs - x) : r.maxY - (xs - x), y1 = cross ? r.minY + (xe - x) : r.maxY - (xe - x)
+                d += "M\(n(xs)) \(n(y0)) L\(n(xe)) \(n(y1)) "
+            }
             x += gap
         }
         return d
@@ -369,7 +398,7 @@ enum Robot {
         var out = """
         <svg xmlns="http://www.w3.org/2000/svg" \(size) viewBox="\(n(b.minX)) \(n(b.minY)) \(n(b.width)) \(n(b.height))" fill="none">
         <title>kip, \(name)</title>
-        <!-- Generated from Shared/Robot.swift by `kip --svg <dir>`. Edit the Swift, not this file.
+        <!-- Generated from Shared/Robot.swift by the kip app (svg option, see README). Edit the Swift, not this file.
              \(note) -->
 
         """
