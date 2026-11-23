@@ -1,14 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="27.43" height="18" viewBox="0 -2 64 42" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="25.25" height="18" viewBox="4 23 108 77" fill="none">
 <title>kip, menu-bar icon, resting</title>
 <!-- Generated from Shared/Robot.swift by the kip app (svg option, see README). Edit the Swift, not this file.
-     Colours: body #7A7FD9, back #C5C8F5, lines #2B2E6B, ball #FF7A5C, blush #FF7A5C, eyes #FFFFFF. Menu-bar size: bold lines, no hatching or wobble. -->
-<rect x="3" y="22" width="54" height="16" rx="8" fill="#7A7FD9"/>
-<path d="M56.84 31.6 C56.08 35.32 52.8 38 49 38 L11 38 C7.2 38 3.92 35.32 3.16 31.6 Z" fill="#2B2E6B" opacity="0.3"/>
-<path d="M49 22 L49 22 C53.42 22 57 25.58 57 30 C57 34.42 53.42 38 49 38 Z" fill="#2B2E6B" opacity="0.2"/>
-<rect x="3" y="22" width="54" height="16" rx="8" stroke="#2B2E6B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M42 22 L47 11.5" stroke="#2B2E6B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="48.5" cy="7.5" r="4.2" fill="#FF7A5C"/>
-<circle cx="48.5" cy="7.5" r="4.2" stroke="#2B2E6B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M12.5 27.5 Q17 32 21.5 27.5" stroke="#2B2E6B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M24.5 27.5 Q29 32 33.5 27.5" stroke="#2B2E6B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+     Colours: body #7A7FD9, back #C5C8F5, lines #2B2E6B, ball #FF7A5C, blush #FF7A5C, eyes #FFFFFF. Menu-bar size: the same drawing, still, lines 1.8x bolder, solid shading for the hatching, no wobble. -->
+<path d="M25.16 65 C49.05 66.95 72.95 66.65 96.84 65.2 C104.11 65.2 110 70.89 110 78.16 L110 79.84 C110 87.11 104.11 93 96.84 93 C72.95 93.45 49.05 92.8 25.16 93 C17.89 93 12 87.11 12 79.84 L12 78.16 C12 70.89 17.89 65 25.16 65 Z" fill="#C5C8F5"/>
+<path d="M25.16 65 C49.05 66.95 72.95 66.65 96.84 65.2 C104.11 65.2 110 70.89 110 78.16 L110 79.84 C110 87.11 104.11 93 96.84 93 C72.95 93.45 49.05 92.8 25.16 93 C17.89 93 12 87.11 12 79.84 L12 78.16 C12 70.89 17.89 65 25.16 65 Z" stroke="#2B2E6B" stroke-width="3.24" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M19.16 69 C43.05 71.34 66.95 70.98 90.84 69.2 C98.11 69.2 104 74.89 104 82.16 L104 83.84 C104 91.11 98.11 97 90.84 97 C66.95 97.45 43.05 96.8 19.16 97 C11.89 97 6 91.11 6 83.84 L6 82.16 C6 74.89 11.89 69 19.16 69 Z" fill="#7A7FD9"/>
+<path d="M103.85 85.8 C102.88 92.24 97.35 97 90.84 97 L19.16 97 C12.65 97 7.12 92.24 6.15 85.8 Z" fill="#2B2E6B" opacity="0.3"/>
+<path d="M90.84 69 L90.84 69 C98.11 69 104 74.89 104 82.16 L104 83.84 C104 91.11 98.11 97 90.84 97 Z" fill="#2B2E6B" opacity="0.2"/>
+<rect x="17.84" y="71.5" width="34.3" height="4.48" rx="2.24" fill="#FBF7EF" opacity="0.45"/>
+<path d="M19.16 69 C43.05 71.34 66.95 70.98 90.84 69.2 C98.11 69.2 104 74.89 104 82.16 L104 83.84 C104 91.11 98.11 97 90.84 97 C66.95 97.45 43.05 96.8 19.16 97 C11.89 97 6 91.11 6 83.84 L6 82.16 C6 74.89 11.89 69 19.16 69 Z" stroke="#2B2E6B" stroke-width="4.68" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M55 70.35 C54.5 60.35 56.5 52.85 61.6 53.05" stroke="#2B2E6B" stroke-width="3.96" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="66" cy="53.35" r="4.6" fill="#FF7A5C" opacity="0.6"/>
+<circle cx="66" cy="53.35" r="4.6" stroke="#2B2E6B" stroke-width="2.52" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="23.38" y="90.4" width="8" height="4.2" rx="2.1" fill="#FF7A5C" opacity="0.7"/>
+<rect x="53.88" y="90.4" width="8" height="4.2" rx="2.1" fill="#FF7A5C" opacity="0.7"/>
+<path d="M31.88 82 Q36.38 86.5 40.88 82" stroke="#2B2E6B" stroke-width="3.96" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M44.38 82 Q48.88 86.5 53.38 82" stroke="#2B2E6B" stroke-width="3.96" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="42.63" cy="90" r="1.9" stroke="#2B2E6B" stroke-width="3.24" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M84 50 L92 50 L84 58 L92 58" stroke="#2B2E6B" stroke-width="3.96" stroke-linecap="round" stroke-linejoin="round" opacity="0.68"/>
+<path d="M97 36 L103 36 L97 42 L103 42" stroke="#2B2E6B" stroke-width="3.96" stroke-linecap="round" stroke-linejoin="round" opacity="0.51"/>
 </svg>

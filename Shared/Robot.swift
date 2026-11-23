@@ -33,8 +33,8 @@ enum Robot {
     }
 
     static let box = CGRect(x: 0, y: 0, width: 120, height: 120)
-    /// The menu-bar icon's own space: a flat slab with the eyes standing above it, 18 pt tall.
-    static let glyphBox = CGRect(x: 0, y: -2, width: 64, height: 42)
+    /// The menu-bar icon's space, 18 pt tall: the full drawing cropped to what every pose reaches.
+    static let glyphBox = CGRect(x: 4, y: 23, width: 108, height: 77)
 
     struct Part {
         enum Geometry {
@@ -63,12 +63,13 @@ enum Robot {
     }
 
     /// kip in one mood. `phase` (seconds) animates it in the app; widgets pass nil and stay still.
-    /// `glyph` builds the small menu-bar icon instead. Stale data overrides the mood's face and pose.
+    /// `glyph` cuts the same drawing for the 18 pt menu bar: still, bolder lines, solid shading
+    /// instead of hatching, no clips or filters. Stale data overrides the mood's face and pose.
     static func parts(_ mood: Mood, stale: Bool = false, phase: Double? = nil, glyph: Bool = false) -> [Part] {
-        glyph ? glyphParts(mood, stale: stale) : fullParts(mood, stale: stale, phase: phase)
+        fullParts(mood, stale: stale, phase: glyph ? nil : phase, glyph: glyph)
     }
 
-    private static func fullParts(_ mood: Mood, stale: Bool, phase: Double?) -> [Part] {
+    private static func fullParts(_ mood: Mood, stale: Bool, phase: Double?, glyph: Bool) -> [Part] {
         let ink = Ink.palette(mood, stale: stale)
         let m: Mood? = stale ? nil : mood   // nil: stale, still and plain
         func wave(_ period: Double, _ offset: Double = 0) -> Double {
@@ -87,8 +88,8 @@ enum Robot {
         let bounce: CGFloat = m == .happy ? -3 * max(0, wave(1.1)) : 0
         let pose = Robot.pose(lift: lift, dy: bounce, around: CGPoint(x: b.maxX - r, y: b.maxY - r))
 
-        var out: [Part] = [Part(geometry: .path("M16 99.5 C40 98.6 76 100.2 104 99.2"), color: ink.line, stroked: true,
-                                width: 1.4, opacity: 0.2)]   // pencil ground line
+        var out: [Part] = glyph ? [] : [Part(geometry: .path("M16 99.5 C40 98.6 76 100.2 104 99.2"), color: ink.line,
+                                             stroked: true, width: 1.4, opacity: 0.2)]   // pencil ground line
         func add(_ g: Part.Geometry, _ c: UInt32, stroked: Bool = false, width: CGFloat = 2.6, opacity: Double = 1,
                  clip: Part.Geometry? = nil) {
             out.append(Part(geometry: g, color: c, stroked: stroked, width: width, opacity: opacity, pose: pose, clip: clip))
@@ -96,6 +97,7 @@ enum Robot {
         /// A pencil line: the main stroke plus a lighter second pass just below and right of it, so
         /// the weight swells on the shadow side and thins on the lit side, like a real pencil.
         func pencil(_ g: Part.Geometry, _ c: UInt32, width: CGFloat = 2.6) {
+            if glyph { add(g, c, stroked: true, width: width); return }   // one clean line at 18 pt
             add(g, c, stroked: true, width: width * 0.85, opacity: 0.92)
             out.append(Part(geometry: g, color: c, stroked: true, width: width * 0.55, opacity: 0.5,
                             pose: CGAffineTransform(translationX: 0.55, y: 0.65).concatenating(pose)))
@@ -107,21 +109,35 @@ enum Robot {
         let front = slab(b, radius: r, top: dip), backPath = slab(b.offsetBy(dx: 6, dy: -4), radius: r, top: dip - 0.3)
         add(.path(backPath), ink.back)
         pencil(.path(backPath), ink.line, width: 1.8)
-        add(.path(front), ink.body, opacity: 0.9)
-        add(.path(hatch(b)), ink.line, stroked: true, width: 1, opacity: 0.13, clip: .path(front))
-        add(.path(hatch(b, gap: 5, shift: 2.2)), Ink.paper, stroked: true, width: 1.1, opacity: 0.32, clip: .path(front))
-        // Volume, lit from the top left: cross-hatching builds up along the underside and the tail
-        // end (two passes each, so the shade deepens toward the edge), and more paper shows along the
-        // top-left edge. The slab reads soft and rounded instead of flat.
-        for (band, gap) in [(CGRect(x: b.minX, y: b.minY + b.height * 0.55, width: b.width, height: b.height * 0.45), 3.0),
-                            (CGRect(x: b.minX, y: b.minY + b.height * 0.78, width: b.width, height: b.height * 0.22), 2.4),
-                            (CGRect(x: b.maxX - r * 1.3, y: b.minY, width: r * 1.3, height: b.height), 3.0),
-                            (CGRect(x: b.maxX - r * 0.6, y: b.minY, width: r * 0.6, height: b.height), 2.4)] {
-            add(.path(hatch(band, gap: gap, shift: 1, cross: true)), ink.line, stroked: true, width: 0.9, opacity: 0.14,
-                clip: .path(front))
+        add(.path(front), ink.body, opacity: glyph ? 1 : 0.9)
+        if glyph {
+            // 18 pt can't hold hatching (and the menu bar takes no clips), so the same shade goes in
+            // solid, traced along the slab's round corners: the underside from 60 % down and the tail
+            // end, overlapping darkest at the bottom right, plus a paper streak on the top-left edge.
+            let cy = b.maxY - r, a = asin((b.minY + b.height * 0.6 - cy) / r) * 180 / .pi
+            func then(_ d: String) -> String { "L" + d.dropFirst() }   // continue the outline, don't start a new one
+            add(.path(arc(CGPoint(x: b.maxX - r, y: cy), r, from: a, sweep: 90 - a) + " "
+                      + then(arc(CGPoint(x: b.minX + r, y: cy), r, from: 90, sweep: 90 - a)) + " Z"), ink.line, opacity: 0.3)
+            add(.path("M\(n(b.maxX - r)) \(n(b.minY)) " + then(arc(CGPoint(x: b.maxX - r, y: b.minY + r), r, from: -90, sweep: 90))
+                      + " " + then(arc(CGPoint(x: b.maxX - r, y: cy), r, from: 0, sweep: 90)) + " Z"), ink.line, opacity: 0.2)
+            add(.rect(CGRect(x: b.minX + r * 0.9, y: b.minY + 2.5, width: b.width * 0.35, height: b.height * 0.16),
+                      radius: b.height * 0.08), Ink.paper, opacity: 0.45)
+        } else {
+            add(.path(hatch(b)), ink.line, stroked: true, width: 1, opacity: 0.13, clip: .path(front))
+            add(.path(hatch(b, gap: 5, shift: 2.2)), Ink.paper, stroked: true, width: 1.1, opacity: 0.32, clip: .path(front))
+            // Volume, lit from the top left: cross-hatching builds up along the underside and the tail
+            // end (two passes each, so the shade deepens toward the edge), and more paper shows along the
+            // top-left edge. The slab reads soft and rounded instead of flat.
+            for (band, gap) in [(CGRect(x: b.minX, y: b.minY + b.height * 0.55, width: b.width, height: b.height * 0.45), 3.0),
+                                (CGRect(x: b.minX, y: b.minY + b.height * 0.78, width: b.width, height: b.height * 0.22), 2.4),
+                                (CGRect(x: b.maxX - r * 1.3, y: b.minY, width: r * 1.3, height: b.height), 3.0),
+                                (CGRect(x: b.maxX - r * 0.6, y: b.minY, width: r * 0.6, height: b.height), 2.4)] {
+                add(.path(hatch(band, gap: gap, shift: 1, cross: true)), ink.line, stroked: true, width: 0.9, opacity: 0.14,
+                    clip: .path(front))
+            }
+            let light = CGRect(x: b.minX + r * 0.5, y: b.minY + 1.2, width: b.width * 0.4, height: b.height * 0.22)
+            add(.path(hatch(light, gap: 2.2, shift: 0.6)), Ink.paper, stroked: true, width: 1.2, opacity: 0.5, clip: .path(front))
         }
-        let light = CGRect(x: b.minX + r * 0.5, y: b.minY + 1.2, width: b.width * 0.4, height: b.height * 0.22)
-        add(.path(hatch(light, gap: 2.2, shift: 0.6)), Ink.paper, stroked: true, width: 1.2, opacity: 0.5, clip: .path(front))
         pencil(.path(front), ink.line)
 
         // Antenna from the top middle: up, then hooked right to the ball. Straight up when happy.
@@ -137,8 +153,10 @@ enum Robot {
             let spin = (phase ?? 0) * 90
             add(.path(arc(ball, 8.4 + 0.6 * wave(1.2), from: -60 + spin, sweep: 290)), ink.body, stroked: true,
                 width: 1.5, opacity: 0.85)
-            add(.path(arc(ball, 12.8 + 0.9 * wave(1.2), from: 150 - spin * 0.6, sweep: 200)), ink.line, stroked: true,
-                width: 1.1, opacity: 0.3 + 0.15 * wave(1.2))
+            if !glyph {   // the faint outer ring is lost at 18 pt
+                add(.path(arc(ball, 12.8 + 0.9 * wave(1.2), from: 150 - spin * 0.6, sweep: 200)), ink.line, stroked: true,
+                    width: 1.1, opacity: 0.3 + 0.15 * wave(1.2))
+            }
         }
         add(.circle(ball, radius: 4.6), ink.ball, opacity: m == .resting ? 0.6 : 1)
         pencil(.circle(ball, radius: 4.6), ink.line, width: 1.4)
@@ -228,57 +246,9 @@ enum Robot {
         default:
             break
         }
-        return out
-    }
-
-    /// The menu-bar icon: a flat slab, eyes standing above it, antenna to the right. Bold lines, no
-    /// hatching, so it stays crisp at 18 pt; the full art's volume shading becomes two solid bands.
-    /// It lies flat until something needs you, then it lifts and its ball glows.
-    private static func glyphParts(_ mood: Mood, stale: Bool) -> [Part] {
-        let ink = Ink.palette(mood, stale: stale)
-        let m: Mood? = stale ? nil : mood
-        let slab = CGRect(x: 3, y: 22, width: 54, height: 16), r: CGFloat = 8
-        let lift = m == .worried ? 13.0 : m == .busy ? 7 : 0
-        let pose = Robot.pose(lift: lift, around: CGPoint(x: slab.maxX - r, y: slab.maxY - r))
-        var out: [Part] = []
-        func add(_ g: Part.Geometry, _ c: UInt32, stroked: Bool = false, width: CGFloat = 2.6, opacity: Double = 1) {
-            out.append(Part(geometry: g, color: c, stroked: stroked, width: width, opacity: opacity, pose: pose))
-        }
-
-        let straight = m == .happy
-        let ball = straight ? CGPoint(x: 42, y: 5.5) : CGPoint(x: 48.5, y: 7.5)
-        add(.rect(slab, radius: r), ink.body)
-        // Volume, lit from the top left: a solid shade along the underside and the tail end, traced to
-        // the slab's round ends rather than clipped, so the glyph stays filter- and clip-free. They
-        // overlap at the bottom right, so the shade is deepest there, like the full art's hatching.
-        let cl = CGPoint(x: slab.minX + r, y: slab.midY), cr = CGPoint(x: slab.maxX - r, y: slab.midY)
-        let a = asin(slab.height * 0.1 / r) * 180 / .pi   // the band's top edge sits 60 % down the slab
-        func then(_ d: String) -> String { "L" + d.dropFirst() }   // continue the outline, don't start a new one
-        add(.path(arc(cr, r, from: a, sweep: 90 - a) + " " + then(arc(cl, r, from: 90, sweep: 90 - a)) + " Z"),
-            ink.line, opacity: 0.3)
-        add(.path("M\(n(cr.x)) \(n(slab.minY)) " + then(arc(cr, r, from: -90, sweep: 180)) + " Z"), ink.line, opacity: 0.2)
-        add(.rect(slab, radius: r), ink.line, stroked: true)
-        add(.path(straight ? "M42 22 L42 10" : "M42 22 L47 11.5"), ink.line, stroked: true, width: 2.4)
-        if m == .busy || m == .worried { add(.circle(ball, radius: 7.5), ink.ball, opacity: 0.35) }
-        // Busy: a bold teal loading ring at the glow's edge, the 18 pt cut of the full art's ring pair.
-        if m == .busy { add(.path(arc(ball, 7.5, from: -50, sweep: 280)), ink.body, stroked: true, width: 2.2) }
-        add(.circle(ball, radius: 4.2), ink.ball)
-        add(.circle(ball, radius: 4.2), ink.line, stroked: true, width: 1.6)
-        for x: CGFloat in [17, 29] {
-            if m == .resting {   // closed eyes lie on the slab, so resting reads by shape too
-                add(.path("M\(n(x - 4.5)) 27.5 Q\(n(x)) 32 \(n(x + 4.5)) 27.5"), ink.line, stroked: true, width: 2.4)
-            } else {
-                let eye = CGRect(x: x - 4.5, y: 12, width: 9, height: 18)
-                add(.rect(eye, radius: 4.5), Ink.eye)
-                add(.rect(eye, radius: 4.5), ink.line, stroked: true, width: 2.4)
-                if m == nil {   // stale: dot pupils, so it reads by shape too
-                    add(.circle(CGPoint(x: x, y: 22), radius: 2), ink.line)
-                } else {
-                    add(.rect(CGRect(x: x - 1.6, y: 16.5, width: 3.2, height: 9), radius: 1.6), ink.line)
-                }
-            }
-        }
-        return out
+        guard glyph else { return out }
+        // 18 pt: every line 1.8× bolder, so the same drawing stays crisp in the menu bar.
+        return out.map { var p = $0; if p.stroked { p.width *= 1.8 }; return p }
     }
 
     // MARK: Path helpers
@@ -405,7 +375,7 @@ enum Robot {
         let size = glyph ? "width=\"\(n(18 * b.width / b.height))\" height=\"18\"" : "width=\"120\" height=\"120\""
         let note = "Colours: body \(hex(ink.body)), back \(hex(ink.back)), lines \(hex(ink.line)), ball \(hex(ink.ball)), "
             + "blush \(hex(Ink.coral)), eyes #FFFFFF."
-            + (glyph ? " Menu-bar size: bold lines, no hatching or wobble." : " The pencil filter wobbles each line by at most 1.2.")
+            + (glyph ? " Menu-bar size: the same drawing, still, lines 1.8x bolder, solid shading for the hatching, no wobble." : " The pencil filter wobbles each line by at most 1.2.")
         var out = """
         <svg xmlns="http://www.w3.org/2000/svg" \(size) viewBox="\(n(b.minX)) \(n(b.minY)) \(n(b.width)) \(n(b.height))" fill="none">
         <title>kip, \(name)</title>

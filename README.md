@@ -78,7 +78,7 @@ Set `DOCKET_JSON` to write to another file, for example in tests.
 
 ## kip artwork
 
-`Design/robot/` holds the master SVGs, two per look: `kip-<mood>.svg` (full coloured-pencil art) and `kip-<mood>-small.svg` (the 18 pt colour menu-bar icon), for `resting`, `calm`, `happy`, `busy`, `worried` and `stale`. The full art gets a light `feTurbulence` wobble (scale 1.2) and hatching. The small icons skip the wobble, hatching and grain, so they stay crisp at 16–22 pt. They are generated from `Shared/Robot.swift`, which also draws kip in SwiftUI, so the two never drift apart. To change kip, edit the Swift, rebuild and run:
+`Design/robot/` holds the master SVGs, two per look: `kip-<mood>.svg` (full coloured-pencil art) and `kip-<mood>-small.svg` (the 18 pt colour menu-bar icon), for `resting`, `calm`, `happy`, `busy`, `worried` and `stale`. The full art gets a light `feTurbulence` wobble (scale 1.2) and hatching. The small icons are the same drawing, still, with lines 1.8× bolder, solid shading in place of the hatching and no wobble or grain, so they stay crisp at 16–22 pt. They are generated from `Shared/Robot.swift`, which also draws kip in SwiftUI, so the two never drift apart. To change kip, edit the Swift, rebuild and run:
 
 ```bash
 ~/Applications/kip.app/Contents/MacOS/kip --svg Design/robot
