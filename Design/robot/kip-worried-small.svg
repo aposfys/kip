@@ -3,6 +3,8 @@
 <!-- Generated from Shared/Robot.swift by the kip app (svg option, see README). Edit the Swift, not this file.
      Colours: body #FF8A4C, back #FFC9A8, lines #7A2E0B, ball #FF3B30, blush #FF7A5C, eyes #FFFFFF. Menu-bar size: bold lines, no hatching or wobble. -->
 <rect x="3" y="22" width="54" height="16" rx="8" fill="#FF8A4C" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<path d="M56.84 31.6 C56.08 35.32 52.8 38 49 38 L11 38 C7.2 38 3.92 35.32 3.16 31.6 Z" fill="#7A2E0B" opacity="0.3" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
+<path d="M49 22 L49 22 C53.42 22 57 25.58 57 30 C57 34.42 53.42 38 49 38 Z" fill="#7A2E0B" opacity="0.2" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
 <rect x="3" y="22" width="54" height="16" rx="8" stroke="#7A2E0B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
 <path d="M42 22 L47 11.5" stroke="#7A2E0B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>
 <circle cx="48.5" cy="7.5" r="7.5" fill="#FF3B30" opacity="0.35" transform="matrix(0.97 0.22 -0.22 0.97 8 -10.25)"/>

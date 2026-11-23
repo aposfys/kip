@@ -232,8 +232,8 @@ enum Robot {
     }
 
     /// The menu-bar icon: a flat slab, eyes standing above it, antenna to the right. Bold lines, no
-    /// hatching, so it stays crisp at 18 pt. It lies flat until something needs you, then it lifts
-    /// and its ball glows.
+    /// hatching, so it stays crisp at 18 pt; the full art's volume shading becomes two solid bands.
+    /// It lies flat until something needs you, then it lifts and its ball glows.
     private static func glyphParts(_ mood: Mood, stale: Bool) -> [Part] {
         let ink = Ink.palette(mood, stale: stale)
         let m: Mood? = stale ? nil : mood
@@ -248,9 +248,20 @@ enum Robot {
         let straight = m == .happy
         let ball = straight ? CGPoint(x: 42, y: 5.5) : CGPoint(x: 48.5, y: 7.5)
         add(.rect(slab, radius: r), ink.body)
+        // Volume, lit from the top left: a solid shade along the underside and the tail end, traced to
+        // the slab's round ends rather than clipped, so the glyph stays filter- and clip-free. They
+        // overlap at the bottom right, so the shade is deepest there, like the full art's hatching.
+        let cl = CGPoint(x: slab.minX + r, y: slab.midY), cr = CGPoint(x: slab.maxX - r, y: slab.midY)
+        let a = asin(slab.height * 0.1 / r) * 180 / .pi   // the band's top edge sits 60 % down the slab
+        func then(_ d: String) -> String { "L" + d.dropFirst() }   // continue the outline, don't start a new one
+        add(.path(arc(cr, r, from: a, sweep: 90 - a) + " " + then(arc(cl, r, from: 90, sweep: 90 - a)) + " Z"),
+            ink.line, opacity: 0.3)
+        add(.path("M\(n(cr.x)) \(n(slab.minY)) " + then(arc(cr, r, from: -90, sweep: 180)) + " Z"), ink.line, opacity: 0.2)
         add(.rect(slab, radius: r), ink.line, stroked: true)
         add(.path(straight ? "M42 22 L42 10" : "M42 22 L47 11.5"), ink.line, stroked: true, width: 2.4)
         if m == .busy || m == .worried { add(.circle(ball, radius: 7.5), ink.ball, opacity: 0.35) }
+        // Busy: a bold teal loading ring at the glow's edge, the 18 pt cut of the full art's ring pair.
+        if m == .busy { add(.path(arc(ball, 7.5, from: -50, sweep: 280)), ink.body, stroked: true, width: 2.2) }
         add(.circle(ball, radius: 4.2), ink.ball)
         add(.circle(ball, radius: 4.2), ink.line, stroked: true, width: 1.6)
         for x: CGFloat in [17, 29] {

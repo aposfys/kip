@@ -3,9 +3,12 @@
 <!-- Generated from Shared/Robot.swift by the kip app (svg option, see README). Edit the Swift, not this file.
      Colours: body #2BD4C5, back #A6F0EA, lines #0D5C55, ball #FF7A5C, blush #FF7A5C, eyes #FFFFFF. Menu-bar size: bold lines, no hatching or wobble. -->
 <rect x="3" y="22" width="54" height="16" rx="8" fill="#2BD4C5" transform="matrix(0.99 0.12 -0.12 0.99 4.02 -5.75)"/>
+<path d="M56.84 31.6 C56.08 35.32 52.8 38 49 38 L11 38 C7.2 38 3.92 35.32 3.16 31.6 Z" fill="#0D5C55" opacity="0.3" transform="matrix(0.99 0.12 -0.12 0.99 4.02 -5.75)"/>
+<path d="M49 22 L49 22 C53.42 22 57 25.58 57 30 C57 34.42 53.42 38 49 38 Z" fill="#0D5C55" opacity="0.2" transform="matrix(0.99 0.12 -0.12 0.99 4.02 -5.75)"/>
 <rect x="3" y="22" width="54" height="16" rx="8" stroke="#0D5C55" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.99 0.12 -0.12 0.99 4.02 -5.75)"/>
 <path d="M42 22 L47 11.5" stroke="#0D5C55" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.99 0.12 -0.12 0.99 4.02 -5.75)"/>
 <circle cx="48.5" cy="7.5" r="7.5" fill="#FF7A5C" opacity="0.35" transform="matrix(0.99 0.12 -0.12 0.99 4.02 -5.75)"/>
+<path d="M53.32 1.75 C55.74 3.78 56.63 7.1 55.55 10.07 C54.47 13.03 51.65 15 48.5 15 C45.35 15 42.53 13.03 41.45 10.07 C40.37 7.1 41.26 3.78 43.68 1.75" stroke="#2BD4C5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.99 0.12 -0.12 0.99 4.02 -5.75)"/>
 <circle cx="48.5" cy="7.5" r="4.2" fill="#FF7A5C" transform="matrix(0.99 0.12 -0.12 0.99 4.02 -5.75)"/>
 <circle cx="48.5" cy="7.5" r="4.2" stroke="#0D5C55" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0.99 0.12 -0.12 0.99 4.02 -5.75)"/>
 <rect x="12.5" y="12" width="9" height="18" rx="4.5" fill="#FFFFFF" transform="matrix(0.99 0.12 -0.12 0.99 4.02 -5.75)"/>
